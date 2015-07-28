@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.2)
+set( CMAKE_VERBOSE_MAKEFILE on )
+project(kuma)
+
+find_package(LLVM REQUIRED CONFIG)
+
+#message(WARNING "Found LLVM ${LLVM_PACKAGE_VERSION}")
+#message(WARNING "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+#message(WARNING "LLVM libs: ${LLVM_LIBRARY_DIRS}")
+#message(WARNING "LLVM libs: ${LLVM_AVAILABLE_LIBS}")
+
+include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+set(SOURCE_FILES
+    kuma_parser.c
+    kuma_parser.h
+    kuma_lexer.h
+    kuma_lexer.c
+    expression.h
+    expression.c
+    main.cpp)
+
+add_executable(kuma ${SOURCE_FILES})
+
+#target_link_libraries(kuma ${LLVM_AVAILABLE_LIBS})
