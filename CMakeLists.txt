@@ -14,15 +14,22 @@ add_definitions(${LLVM_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+set(OTHER_FILES
+    kuma.l
+    kuma.y
+    )
+
 set(SOURCE_FILES
-    kuma_parser.c
+    kuma_parser.cpp
     kuma_parser.h
     kuma_lexer.h
-    kuma_lexer.c
-    expression.h
-    expression.c
-    main.cpp)
+    kuma_lexer.cpp
+    main.cpp
+    nodes.h
+    nodes.cpp
+    codegen.h
+    codegen.cpp
+    )
 
 add_executable(kuma ${SOURCE_FILES})
-
-#target_link_libraries(kuma ${LLVM_AVAILABLE_LIBS})
+target_link_libraries(kuma ${LLVM_AVAILABLE_LIBS})

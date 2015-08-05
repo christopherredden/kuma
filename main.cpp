@@ -1,21 +1,21 @@
 /*
  * main.c file
  */
+#include <string>
+#include <iostream>
+#include <fstream>
 
-extern "C"
-{
-    #include "expression.h"
-    #include "kuma_parser.h"
-    #include "kuma_lexer.h"
-}
+#include "nodes.h"
+#include "kuma_parser.h"
+#include "kuma_lexer.h"
 
 #include <stdio.h>
 
-int yyparse(SExpression **expression, yyscan_t scanner);
+int yyparse(NBlock **expression, yyscan_t scanner);
 
-SExpression *getAST(const char *expr)
+NBlock *getAST(const char *expr)
 {
-    SExpression *expression;
+    NBlock *programBlock;
     yyscan_t scanner;
     YY_BUFFER_STATE state;
 
@@ -26,7 +26,7 @@ SExpression *getAST(const char *expr)
 
     state = yy_scan_string(expr, scanner);
 
-    if (yyparse(&expression, scanner)) {
+    if (yyparse(&programBlock, scanner)) {
         // error parsing
         return NULL;
     }
@@ -35,10 +35,10 @@ SExpression *getAST(const char *expr)
 
     yylex_destroy(scanner);
 
-    return expression;
+    return programBlock;
 }
 
-int evaluate(SExpression *e)
+/*int evaluate(SExpression *e)
 {
     switch (e->type) {
         case eVALUE:
@@ -51,21 +51,51 @@ int evaluate(SExpression *e)
             // shouldn't be here
             return 0;
     }
-}
+}*/
 
 int main(void)
 {
-    SExpression *e = NULL;
-    char test[]=" 4 + 2*10 + 3*( 5 + 1 )";
-    int result = 0;
+    NBlock *programBlock = NULL;
+    /*char test[]="extern void printi(int val)\n"
+            "\n"
+            "int foo = 5\n"
+            "int do_math(int a) {\n"
+            "  int x = a * 5\n"
+            "  return x + 3\n"
+            "}\n"
+            "\n"
+            "echo(do_math(11))\n"
+            "echo(do_math(12))\n"
+            "printi(10)";
+    int result = 0;*/
 
-    e = getAST(test);
+    std::ifstream t("test.ks");
+    std::string str;
 
-    result = evaluate(e);
+    t.seekg(0, std::ios::end);
+    str.reserve(t.tellg());
+    t.seekg(0, std::ios::beg);
 
-    printf("Result of '%s' is %d\n", test, result);
+    str.assign((std::istreambuf_iterator<char>(t)),
+               std::istreambuf_iterator<char>());
 
-    deleteExpression(e);
+    programBlock = getAST(str.c_str());
+
+    std::cout << programBlock << std::endl;
+
+    CodeGenContext context;
+    context.generateCode(*programBlock);
+    context.runCode();
+
+
+    printf("Completed.\n");
+//    printf("%s\n", context.output.str().c_str());
+
+    //result = evaluate(e);
+
+    //printf("Result of '%s' is %d\n", test, result);
+
+    //deleteExpression(e);
 
     return 0;
 }

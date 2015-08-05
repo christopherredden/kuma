@@ -1,10 +1,10 @@
-extern void printi(int val)
+def bar(int a, int b)(int, double, int)
+    int total = a + b
 
-int do_math(int a) {
-      int x = a * 5
-        return x + 3
-}
+    return 5, 6.6, 12
+end
 
-echo(do_math(11))
-echo(do_math(12))
-printi(10)
+int a
+double b
+int c
+a, b, c = bar(7, 9)

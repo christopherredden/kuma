@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 19 "kuma.y" /* yacc.c:1915  */
+#line 20 "kuma.y" /* yacc.c:1915  */
 
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -56,11 +56,30 @@ typedef void* yyscan_t;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TOKEN_PLUS = 258,
-    TOKEN_MULTIPLY = 259,
-    TOKEN_LPAREN = 260,
-    TOKEN_RPAREN = 261,
-    TOKEN_NUMBER = 262
+    TIDENTIFIER = 258,
+    TINTEGER = 259,
+    TDOUBLE = 260,
+    TCEQ = 261,
+    TCNE = 262,
+    TCLT = 263,
+    TCLE = 264,
+    TCGT = 265,
+    TCGE = 266,
+    TEQUAL = 267,
+    TLPAREN = 268,
+    TRPAREN = 269,
+    TLBRACE = 270,
+    TRBRACE = 271,
+    TCOMMA = 272,
+    TDOT = 273,
+    TPLUS = 274,
+    TMINUS = 275,
+    TMUL = 276,
+    TDIV = 277,
+    TRETURN = 278,
+    TEXTERN = 279,
+    TFUNCDEF = 280,
+    TEND = 281
   };
 #endif
 
@@ -69,12 +88,23 @@ typedef void* yyscan_t;
 
 union YYSTYPE
 {
-#line 36 "kuma.y" /* yacc.c:1915  */
+#line 38 "kuma.y" /* yacc.c:1915  */
 
-    int value;
-    SExpression *expression;
+	Node *node;
+	NBlock *block;
+	NExpression *expr;
+	NMethodCall *methodcall;
+	NReturnStatement *returnstatement;
+	NStatement *stmt;
+	NIdentifier *ident;
+	NVariableDeclaration *var_decl;
+	std::vector<NVariableDeclaration*> *varvec;
+	std::vector<NIdentifier*> *identvec;
+	std::vector<NExpression*> *exprvec;
+	std::string *string;
+	int token;
 
-#line 78 "kuma_parser.h" /* yacc.c:1915  */
+#line 108 "kuma_parser.h" /* yacc.c:1915  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -84,6 +114,6 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int yyparse (SExpression **expression, yyscan_t scanner);
+int yyparse (NBlock** programBlock, yyscan_t scanner);
 
 #endif /* !YY_YY_KUMA_PARSER_H_INCLUDED  */

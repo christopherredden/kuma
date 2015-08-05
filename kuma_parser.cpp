@@ -70,17 +70,18 @@
  * To generate the parser run: "bison Parser.y"
  */
  
-#include "expression.h"
+#include <string>
+#include "nodes.h"
 #include "kuma_parser.h"
 #include "kuma_lexer.h"
 
-/*int yyerror(SExpression **expression, yyscan_t scanner, const char *msg) {
-    // Add error handling routine as needed
+int yyerror(NBlock **expression, yyscan_t scanner, const char *msg) {
+    printf("ERROR: %s\n", msg);
     return 0;
-}*/
+}
  
 
-#line 84 "kuma_parser.c" /* yacc.c:339  */
+#line 85 "kuma_parser.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -110,7 +111,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 19 "kuma.y" /* yacc.c:355  */
+#line 20 "kuma.y" /* yacc.c:355  */
 
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -119,18 +120,37 @@ typedef void* yyscan_t;
 #endif
 
 
-#line 123 "kuma_parser.c" /* yacc.c:355  */
+#line 124 "kuma_parser.cpp" /* yacc.c:355  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TOKEN_PLUS = 258,
-    TOKEN_MULTIPLY = 259,
-    TOKEN_LPAREN = 260,
-    TOKEN_RPAREN = 261,
-    TOKEN_NUMBER = 262
+    TIDENTIFIER = 258,
+    TINTEGER = 259,
+    TDOUBLE = 260,
+    TCEQ = 261,
+    TCNE = 262,
+    TCLT = 263,
+    TCLE = 264,
+    TCGT = 265,
+    TCGE = 266,
+    TEQUAL = 267,
+    TLPAREN = 268,
+    TRPAREN = 269,
+    TLBRACE = 270,
+    TRBRACE = 271,
+    TCOMMA = 272,
+    TDOT = 273,
+    TPLUS = 274,
+    TMINUS = 275,
+    TMUL = 276,
+    TDIV = 277,
+    TRETURN = 278,
+    TEXTERN = 279,
+    TFUNCDEF = 280,
+    TEND = 281
   };
 #endif
 
@@ -139,12 +159,23 @@ typedef void* yyscan_t;
 
 union YYSTYPE
 {
-#line 36 "kuma.y" /* yacc.c:355  */
+#line 38 "kuma.y" /* yacc.c:355  */
 
-    int value;
-    SExpression *expression;
+	Node *node;
+	NBlock *block;
+	NExpression *expr;
+	NMethodCall *methodcall;
+	NReturnStatement *returnstatement;
+	NStatement *stmt;
+	NIdentifier *ident;
+	NVariableDeclaration *var_decl;
+	std::vector<NVariableDeclaration*> *varvec;
+	std::vector<NIdentifier*> *identvec;
+	std::vector<NExpression*> *exprvec;
+	std::string *string;
+	int token;
 
-#line 148 "kuma_parser.c" /* yacc.c:355  */
+#line 179 "kuma_parser.cpp" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -154,13 +185,13 @@ typedef union YYSTYPE YYSTYPE;
 
 
 
-int yyparse (SExpression **expression, yyscan_t scanner);
+int yyparse (NBlock** programBlock, yyscan_t scanner);
 
 #endif /* !YY_YY_KUMA_PARSER_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-#line 164 "kuma_parser.c" /* yacc.c:358  */
+#line 195 "kuma_parser.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -400,23 +431,23 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  6
+#define YYFINAL  27
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   11
+#define YYLAST   121
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  10
+#define YYNTOKENS  27
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  3
+#define YYNNTS  19
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  6
+#define YYNRULES  49
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  12
+#define YYNSTATES  81
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   262
+#define YYMAXUTOK   281
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -429,7 +460,6 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     5,     3,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -450,15 +480,22 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     1,     2,     4,     6,
-       7,     8,     9
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    55,    55,    59,    60,    61,    62
+       0,    89,    89,    92,    93,    96,    96,    96,    97,    98,
+     101,   102,   105,   109,   113,   114,   115,   118,   119,   120,
+     123,   126,   127,   130,   133,   134,   136,   137,   140,   141,
+     143,   146,   147,   148,   149,   150,   151,   152,   153,   154,
+     155,   158,   159,   160,   163,   163,   163,   163,   163,   163
 };
 #endif
 
@@ -467,9 +504,14 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "'+'", "TOKEN_PLUS", "'*'",
-  "TOKEN_MULTIPLY", "TOKEN_LPAREN", "TOKEN_RPAREN", "TOKEN_NUMBER",
-  "$accept", "input", "expr", YY_NULLPTR
+  "$end", "error", "$undefined", "TIDENTIFIER", "TINTEGER", "TDOUBLE",
+  "TCEQ", "TCNE", "TCLT", "TCLE", "TCGT", "TCGE", "TEQUAL", "TLPAREN",
+  "TRPAREN", "TLBRACE", "TRBRACE", "TCOMMA", "TDOT", "TPLUS", "TMINUS",
+  "TMUL", "TDIV", "TRETURN", "TEXTERN", "TFUNCDEF", "TEND", "$accept",
+  "chunk", "stmts", "stmt", "var_decl", "extern_decl", "func_decl",
+  "func_decl_args", "func_decl_returns", "ident", "numeric", "returnstmnt",
+  "multiple_return", "assignment", "multiple_assignment", "methodcall",
+  "expr", "call_args", "comparison", YY_NULLPTR
 };
 #endif
 
@@ -478,16 +520,18 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_uint16 yytoknum[] =
 {
-       0,   256,   257,    43,   258,    42,   259,   260,   261,   262
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
+     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
+     275,   276,   277,   278,   279,   280,   281
 };
 # endif
 
-#define YYPACT_NINF -6
+#define YYPACT_NINF -58
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-6)))
+  (!!((Yystate) == (-58)))
 
-#define YYTABLE_NINF -1
+#define YYTABLE_NINF -29
 
 #define yytable_value_is_error(Yytable_value) \
   0
@@ -496,8 +540,15 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -5,    -5,    -6,     9,     4,    -3,    -6,    -5,    -5,    -6,
-       5,    -6
+      62,   -58,   -58,   -58,     7,     7,     2,     2,    13,    62,
+     -58,   -58,   -58,   -58,     5,   -58,   -58,   -58,     4,   -58,
+      99,    14,    82,     6,    99,     2,    16,   -58,   -58,     7,
+      24,     7,     2,   -58,   -58,   -58,   -58,   -58,   -58,     7,
+       7,     7,     7,     7,   -58,     7,    33,     2,    99,    31,
+       7,   -58,    99,   -58,    73,    73,   105,   105,    99,    99,
+       2,   -58,    44,     2,   -58,     7,    99,    45,    37,     2,
+      99,   -58,     2,   -58,    54,   -58,    62,     2,    30,   -58,
+     -58
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -505,55 +556,101 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     0,     6,     0,     2,     0,     1,     0,     0,     5,
-       3,     4
+       0,    20,    21,    22,     0,     0,     0,     0,     0,     2,
+       3,     5,     7,     6,    33,    34,     9,    31,     0,    32,
+       8,    33,     0,    23,    24,     0,     0,     1,     4,    41,
+      10,     0,     0,    44,    45,    46,    47,    48,    49,     0,
+       0,     0,     0,     0,    40,     0,     0,    14,    42,     0,
+       0,    26,    27,    29,    37,    38,    35,    36,    39,    25,
+      14,    15,     0,     0,    30,     0,    11,     0,     0,     0,
+      43,    12,    17,    16,     0,    18,     0,     0,     0,    19,
+      13
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -6,    -6,    -1
+     -58,   -58,   -57,    -8,   -45,   -58,   -58,   -23,   -58,     0,
+     -58,   -58,   -58,   -58,   -58,    20,    -1,   -58,   -58
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     3,     4
+      -1,     8,     9,    10,    11,    12,    13,    62,    74,    21,
+      15,    16,    23,    17,    18,    19,    20,    49,    43
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule whose
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_uint8 yytable[] =
+static const yytype_int8 yytable[] =
 {
-       5,     7,     1,     8,     2,     9,    10,    11,     7,     6,
-       8,     8
+      14,    28,    61,    22,    24,     1,    25,    26,     1,    14,
+       1,     2,     3,    27,    30,    61,    31,   -28,    29,    78,
+       4,    32,   -28,    45,    73,    46,   -28,    29,    48,    47,
+      52,   -28,    53,     1,     2,     3,    50,    67,    54,    55,
+      56,    57,    58,     4,    59,    64,    60,    63,    65,    66,
+      72,    51,     0,     5,     6,     7,    80,     0,    68,    71,
+      63,    69,    69,    30,    70,     1,     2,     3,    76,    63,
+      28,    77,    75,     0,     0,     4,    14,    79,    14,    33,
+      34,    35,    36,    37,    38,     5,     6,     7,    33,    34,
+      35,    36,    37,    38,    41,    42,    44,     0,     0,     0,
+       0,    39,    40,    41,    42,    33,    34,    35,    36,    37,
+      38,    33,    34,    35,    36,    37,    38,     0,    39,    40,
+      41,    42
 };
 
-static const yytype_uint8 yycheck[] =
+static const yytype_int8 yycheck[] =
 {
-       1,     4,     7,     6,     9,     8,     7,     8,     4,     0,
-       6,     6
+       0,     9,    47,     4,     5,     3,     6,     7,     3,     9,
+       3,     4,     5,     0,    14,    60,    12,    12,    13,    76,
+      13,    17,    17,    17,    69,    25,    12,    13,    29,    13,
+      31,    17,    32,     3,     4,     5,    12,    60,    39,    40,
+      41,    42,    43,    13,    45,    14,    13,    47,    17,    50,
+      13,    31,    -1,    23,    24,    25,    26,    -1,    14,    14,
+      60,    17,    17,    63,    65,     3,     4,     5,    14,    69,
+      78,    17,    72,    -1,    -1,    13,    76,    77,    78,     6,
+       7,     8,     9,    10,    11,    23,    24,    25,     6,     7,
+       8,     9,    10,    11,    21,    22,    14,    -1,    -1,    -1,
+      -1,    19,    20,    21,    22,     6,     7,     8,     9,    10,
+      11,     6,     7,     8,     9,    10,    11,    -1,    19,    20,
+      21,    22
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     7,     9,    11,    12,    12,     0,     4,     6,     8,
-      12,    12
+       0,     3,     4,     5,    13,    23,    24,    25,    28,    29,
+      30,    31,    32,    33,    36,    37,    38,    40,    41,    42,
+      43,    36,    43,    39,    43,    36,    36,     0,    30,    13,
+      36,    12,    17,     6,     7,     8,     9,    10,    11,    19,
+      20,    21,    22,    45,    14,    17,    36,    13,    43,    44,
+      12,    42,    43,    36,    43,    43,    43,    43,    43,    43,
+      13,    31,    34,    36,    14,    17,    43,    34,    14,    17,
+      43,    14,    13,    31,    35,    36,    14,    17,    29,    36,
+      26
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    10,    11,    12,    12,    12,    12
+       0,    27,    28,    29,    29,    30,    30,    30,    30,    30,
+      31,    31,    32,    33,    34,    34,    34,    35,    35,    35,
+      36,    37,    37,    38,    39,    39,    40,    40,    41,    41,
+      42,    43,    43,    43,    43,    43,    43,    43,    43,    43,
+      43,    44,    44,    44,    45,    45,    45,    45,    45,    45
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     3,     3,     3,     1
+       0,     2,     1,     1,     2,     1,     1,     1,     1,     1,
+       2,     4,     6,    10,     0,     1,     3,     0,     1,     3,
+       1,     1,     1,     2,     1,     3,     3,     3,     1,     3,
+       4,     1,     1,     1,     1,     3,     3,     3,     3,     3,
+       3,     0,     1,     3,     1,     1,     1,     1,     1,     1
 };
 
 
@@ -581,7 +678,7 @@ do                                                              \
     }                                                           \
   else                                                          \
     {                                                           \
-      yyerror (expression, scanner, YY_("syntax error: cannot back up")); \
+      yyerror (programBlock, scanner, YY_("syntax error: cannot back up")); \
       YYERROR;                                                  \
     }                                                           \
 while (0)
@@ -618,7 +715,7 @@ do {                                                                      \
     {                                                                     \
       YYFPRINTF (stderr, "%s ", Title);                                   \
       yy_symbol_print (stderr,                                            \
-                  Type, Value, expression, scanner); \
+                  Type, Value, programBlock, scanner); \
       YYFPRINTF (stderr, "\n");                                           \
     }                                                                     \
 } while (0)
@@ -629,11 +726,11 @@ do {                                                                      \
 `----------------------------------------*/
 
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, SExpression **expression, yyscan_t scanner)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, NBlock** programBlock, yyscan_t scanner)
 {
   FILE *yyo = yyoutput;
   YYUSE (yyo);
-  YYUSE (expression);
+  YYUSE (programBlock);
   YYUSE (scanner);
   if (!yyvaluep)
     return;
@@ -650,12 +747,12 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
 `--------------------------------*/
 
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, SExpression **expression, yyscan_t scanner)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, NBlock** programBlock, yyscan_t scanner)
 {
   YYFPRINTF (yyoutput, "%s %s (",
              yytype < YYNTOKENS ? "token" : "nterm", yytname[yytype]);
 
-  yy_symbol_value_print (yyoutput, yytype, yyvaluep, expression, scanner);
+  yy_symbol_value_print (yyoutput, yytype, yyvaluep, programBlock, scanner);
   YYFPRINTF (yyoutput, ")");
 }
 
@@ -688,7 +785,7 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule, SExpression **expression, yyscan_t scanner)
+yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule, NBlock** programBlock, yyscan_t scanner)
 {
   unsigned long int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -702,7 +799,7 @@ yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule, SExpression **
       yy_symbol_print (stderr,
                        yystos[yyssp[yyi + 1 - yynrhs]],
                        &(yyvsp[(yyi + 1) - (yynrhs)])
-                                              , expression, scanner);
+                                              , programBlock, scanner);
       YYFPRINTF (stderr, "\n");
     }
 }
@@ -710,7 +807,7 @@ yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule, SExpression **
 # define YY_REDUCE_PRINT(Rule)          \
 do {                                    \
   if (yydebug)                          \
-    yy_reduce_print (yyssp, yyvsp, Rule, expression, scanner); \
+    yy_reduce_print (yyssp, yyvsp, Rule, programBlock, scanner); \
 } while (0)
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
@@ -968,10 +1065,10 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 `-----------------------------------------------*/
 
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, SExpression **expression, yyscan_t scanner)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, NBlock** programBlock, yyscan_t scanner)
 {
   YYUSE (yyvaluep);
-  YYUSE (expression);
+  YYUSE (programBlock);
   YYUSE (scanner);
   if (!yymsg)
     yymsg = "Deleting";
@@ -990,7 +1087,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, SExpression **expr
 `----------*/
 
 int
-yyparse (SExpression **expression, yyscan_t scanner)
+yyparse (NBlock** programBlock, yyscan_t scanner)
 {
 /* The lookahead symbol.  */
 int yychar;
@@ -1238,37 +1335,217 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 55 "kuma.y" /* yacc.c:1661  */
-    { *expression = (yyvsp[0].expression); }
-#line 1244 "kuma_parser.c" /* yacc.c:1661  */
+#line 89 "kuma.y" /* yacc.c:1661  */
+    { *programBlock = (yyvsp[0].block); }
+#line 1341 "kuma_parser.cpp" /* yacc.c:1661  */
     break;
 
   case 3:
-#line 59 "kuma.y" /* yacc.c:1661  */
-    { (yyval.expression) = createOperation( ePLUS, (yyvsp[-2].expression), (yyvsp[0].expression) ); }
-#line 1250 "kuma_parser.c" /* yacc.c:1661  */
+#line 92 "kuma.y" /* yacc.c:1661  */
+    { (yyval.block) = new NBlock(); (yyval.block)->statements.push_back((yyvsp[0].stmt)); }
+#line 1347 "kuma_parser.cpp" /* yacc.c:1661  */
     break;
 
   case 4:
-#line 60 "kuma.y" /* yacc.c:1661  */
-    { (yyval.expression) = createOperation( eMULTIPLY, (yyvsp[-2].expression), (yyvsp[0].expression) ); }
-#line 1256 "kuma_parser.c" /* yacc.c:1661  */
+#line 93 "kuma.y" /* yacc.c:1661  */
+    { (yyvsp[-1].block)->statements.push_back((yyvsp[0].stmt)); }
+#line 1353 "kuma_parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 5:
-#line 61 "kuma.y" /* yacc.c:1661  */
-    { (yyval.expression) = (yyvsp[-1].expression); }
-#line 1262 "kuma_parser.c" /* yacc.c:1661  */
+  case 8:
+#line 97 "kuma.y" /* yacc.c:1661  */
+    { (yyval.stmt) = new NExpressionStatement(*(yyvsp[0].expr)); }
+#line 1359 "kuma_parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 6:
-#line 62 "kuma.y" /* yacc.c:1661  */
-    { (yyval.expression) = createNumber((yyvsp[0].value)); }
-#line 1268 "kuma_parser.c" /* yacc.c:1661  */
+  case 10:
+#line 101 "kuma.y" /* yacc.c:1661  */
+    { (yyval.stmt) = new NVariableDeclaration(*(yyvsp[-1].ident), *(yyvsp[0].ident)); }
+#line 1365 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 11:
+#line 102 "kuma.y" /* yacc.c:1661  */
+    { (yyval.stmt) = new NVariableDeclaration(*(yyvsp[-3].ident), *(yyvsp[-2].ident), (yyvsp[0].expr)); }
+#line 1371 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 12:
+#line 106 "kuma.y" /* yacc.c:1661  */
+    { (yyval.stmt) = new NExternDeclaration(*(yyvsp[-4].ident), *(yyvsp[-3].ident), *(yyvsp[-1].varvec)); delete (yyvsp[-1].varvec); }
+#line 1377 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 13:
+#line 110 "kuma.y" /* yacc.c:1661  */
+    { (yyval.stmt) = new NFunctionDeclaration(*(yyvsp[-8].ident), *(yyvsp[-6].varvec), *(yyvsp[-3].identvec), *(yyvsp[-1].block)); delete (yyvsp[-6].varvec); delete (yyvsp[-3].identvec);}
+#line 1383 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 14:
+#line 113 "kuma.y" /* yacc.c:1661  */
+    { (yyval.varvec) = new VariableList(); }
+#line 1389 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 15:
+#line 114 "kuma.y" /* yacc.c:1661  */
+    { (yyval.varvec) = new VariableList(); (yyval.varvec)->push_back((yyvsp[0].var_decl)); }
+#line 1395 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 16:
+#line 115 "kuma.y" /* yacc.c:1661  */
+    { (yyvsp[-2].varvec)->push_back((yyvsp[0].var_decl)); }
+#line 1401 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 17:
+#line 118 "kuma.y" /* yacc.c:1661  */
+    { (yyval.identvec) = new IdentList(); }
+#line 1407 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 18:
+#line 119 "kuma.y" /* yacc.c:1661  */
+    { (yyval.identvec) = new IdentList(); (yyval.identvec)->push_back((yyvsp[0].ident)); }
+#line 1413 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 19:
+#line 120 "kuma.y" /* yacc.c:1661  */
+    { (yyvsp[-2].identvec)->push_back((yyvsp[0].ident)); }
+#line 1419 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 20:
+#line 123 "kuma.y" /* yacc.c:1661  */
+    { (yyval.ident) = new NIdentifier(*(yyvsp[0].string)); delete (yyvsp[0].string); }
+#line 1425 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 21:
+#line 126 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NInteger(atol((yyvsp[0].string)->c_str())); delete (yyvsp[0].string); }
+#line 1431 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 22:
+#line 127 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NDouble(atof((yyvsp[0].string)->c_str())); delete (yyvsp[0].string); }
+#line 1437 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 23:
+#line 130 "kuma.y" /* yacc.c:1661  */
+    { (yyval.returnstatement) = new NReturnStatement(*(yyvsp[0].exprvec)); }
+#line 1443 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 24:
+#line 133 "kuma.y" /* yacc.c:1661  */
+    { (yyval.exprvec) = new ExpressionList(); (yyval.exprvec)->push_back((yyvsp[0].expr)); }
+#line 1449 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 25:
+#line 134 "kuma.y" /* yacc.c:1661  */
+    { (yyvsp[-2].exprvec)->push_back((yyvsp[0].expr)); }
+#line 1455 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 26:
+#line 136 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NAssignmentMethodCall(*(yyvsp[-2].identvec), *(yyvsp[0].methodcall)); }
+#line 1461 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 27:
+#line 137 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NAssignment(*(yyvsp[-2].identvec), *(yyvsp[0].expr)); }
+#line 1467 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 28:
+#line 140 "kuma.y" /* yacc.c:1661  */
+    { (yyval.identvec) = new IdentList(); (yyval.identvec)->push_back((yyvsp[0].ident)); }
+#line 1473 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 29:
+#line 141 "kuma.y" /* yacc.c:1661  */
+    { (yyvsp[-2].identvec)->push_back((yyvsp[0].ident)); }
+#line 1479 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 30:
+#line 143 "kuma.y" /* yacc.c:1661  */
+    { (yyval.methodcall) = new NMethodCall(*(yyvsp[-3].ident), *(yyvsp[-1].exprvec)); delete (yyvsp[-1].exprvec); }
+#line 1485 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 33:
+#line 148 "kuma.y" /* yacc.c:1661  */
+    { (yyval.ident) = (yyvsp[0].ident); }
+#line 1491 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 35:
+#line 150 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NBinaryOperator(*(yyvsp[-2].expr), (yyvsp[-1].token), *(yyvsp[0].expr)); }
+#line 1497 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 36:
+#line 151 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NBinaryOperator(*(yyvsp[-2].expr), (yyvsp[-1].token), *(yyvsp[0].expr)); }
+#line 1503 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 37:
+#line 152 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NBinaryOperator(*(yyvsp[-2].expr), (yyvsp[-1].token), *(yyvsp[0].expr)); }
+#line 1509 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 38:
+#line 153 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NBinaryOperator(*(yyvsp[-2].expr), (yyvsp[-1].token), *(yyvsp[0].expr)); }
+#line 1515 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 39:
+#line 154 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = new NBinaryOperator(*(yyvsp[-2].expr), (yyvsp[-1].token), *(yyvsp[0].expr)); }
+#line 1521 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 40:
+#line 155 "kuma.y" /* yacc.c:1661  */
+    { (yyval.expr) = (yyvsp[-1].expr); }
+#line 1527 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 41:
+#line 158 "kuma.y" /* yacc.c:1661  */
+    { (yyval.exprvec) = new ExpressionList(); }
+#line 1533 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 42:
+#line 159 "kuma.y" /* yacc.c:1661  */
+    { (yyval.exprvec) = new ExpressionList(); (yyval.exprvec)->push_back((yyvsp[0].expr)); }
+#line 1539 "kuma_parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 43:
+#line 160 "kuma.y" /* yacc.c:1661  */
+    { (yyvsp[-2].exprvec)->push_back((yyvsp[0].expr)); }
+#line 1545 "kuma_parser.cpp" /* yacc.c:1661  */
     break;
 
 
-#line 1272 "kuma_parser.c" /* yacc.c:1661  */
+#line 1549 "kuma_parser.cpp" /* yacc.c:1661  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1318,7 +1595,7 @@ yyerrlab:
     {
       ++yynerrs;
 #if ! YYERROR_VERBOSE
-      yyerror (expression, scanner, YY_("syntax error"));
+      yyerror (programBlock, scanner, YY_("syntax error"));
 #else
 # define YYSYNTAX_ERROR yysyntax_error (&yymsg_alloc, &yymsg, \
                                         yyssp, yytoken)
@@ -1345,7 +1622,7 @@ yyerrlab:
                 yymsgp = yymsg;
               }
           }
-        yyerror (expression, scanner, yymsgp);
+        yyerror (programBlock, scanner, yymsgp);
         if (yysyntax_error_status == 2)
           goto yyexhaustedlab;
       }
@@ -1369,7 +1646,7 @@ yyerrlab:
       else
         {
           yydestruct ("Error: discarding",
-                      yytoken, &yylval, expression, scanner);
+                      yytoken, &yylval, programBlock, scanner);
           yychar = YYEMPTY;
         }
     }
@@ -1425,7 +1702,7 @@ yyerrlab1:
 
 
       yydestruct ("Error: popping",
-                  yystos[yystate], yyvsp, expression, scanner);
+                  yystos[yystate], yyvsp, programBlock, scanner);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -1462,7 +1739,7 @@ yyabortlab:
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (expression, scanner, YY_("memory exhausted"));
+  yyerror (programBlock, scanner, YY_("memory exhausted"));
   yyresult = 2;
   /* Fall through.  */
 #endif
@@ -1474,7 +1751,7 @@ yyreturn:
          user semantic actions for why this is necessary.  */
       yytoken = YYTRANSLATE (yychar);
       yydestruct ("Cleanup: discarding lookahead",
-                  yytoken, &yylval, expression, scanner);
+                  yytoken, &yylval, programBlock, scanner);
     }
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYABORT or YYACCEPT.  */
@@ -1483,7 +1760,7 @@ yyreturn:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-                  yystos[*yyssp], yyvsp, expression, scanner);
+                  yystos[*yyssp], yyvsp, programBlock, scanner);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -1496,5 +1773,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 65 "kuma.y" /* yacc.c:1906  */
+#line 165 "kuma.y" /* yacc.c:1906  */
 
