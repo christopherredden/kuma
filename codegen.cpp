@@ -9,7 +9,7 @@ using namespace std;
 
 extern "C"
 {
-    void println(int v)
+    void println(long long v)
     {
         printf("Kuma Print: %d\n", v);
     }
@@ -28,11 +28,11 @@ void CodeGenContext::generateCode(NBlock &root)
 {
     std::cout << "Generating code...\n";
 
-    generateStdlib(*this);
+    //generateStdlib(*this);
 
     vector<llvm::Type*> argTypes;
     llvm::FunctionType *functype = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), llvm::makeArrayRef(argTypes), false);
-    mainFunction = llvm::Function::Create(functype, llvm::GlobalValue::InternalLinkage, "main", module);
+    mainFunction = llvm::Function::Create(functype, llvm::GlobalValue::ExternalLinkage, "ks__main", module);
     llvm::BasicBlock *bblock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", mainFunction, 0);
 
     /* Push a new variable/block context */
@@ -42,20 +42,18 @@ void CodeGenContext::generateCode(NBlock &root)
     popBlock();
 
     std::cout << "Code is generated.\n";
-    llvm::legacy::PassManager pm;
-    pm.add(llvm::createPrintModulePass(llvm::outs()));
-    pm.run(*module);
+    module->dump();
 }
 
 llvm::GenericValue CodeGenContext::runCode()
 {
     std::cout << "Running code...\n";
     string errStr;
-    unique_ptr<llvm::Module> pmodule(module);
 
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
-    llvm::ExecutionEngine *ee = llvm::EngineBuilder(std::move(pmodule))
+    llvm::InitializeNativeTargetAsmParser();
+    llvm::ExecutionEngine *ee = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module))
                                                     .setErrorStr(&errStr)
                                                     .setEngineKind(llvm::EngineKind::JIT)
                                                     .create();

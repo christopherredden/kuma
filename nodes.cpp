@@ -15,7 +15,7 @@ static llvm::Type *typeOf(const NIdentifier& type)
 {
     if (type.name.compare("int") == 0)
     {
-        return llvm::Type::getInt64Ty(llvm::getGlobalContext());
+        return llvm::Type::getInt32Ty(llvm::getGlobalContext());
     }
     else if (type.name.compare("double") == 0)
     {
@@ -42,7 +42,7 @@ llvm::Value* NBlock::codeGen(CodeGenContext& context)
 llvm::Value* NInteger::codeGen(CodeGenContext& context)
 {
     std::cout << "Creating integer: " << value << std::endl;
-    return llvm::ConstantInt::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), value, true);
+    return llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), value, true);
 }
 
 llvm::Value* NDouble::codeGen(CodeGenContext& context)
@@ -121,13 +121,31 @@ llvm::Value* NAssignment::codeGen(CodeGenContext& context)
 
 llvm::Value* NAssignmentMethodCall::codeGen(CodeGenContext& context)
 {
-
     llvm::Function *function = context.module->getFunction(rhs.id.name.c_str());
-    llvm::StructType *type = (llvm::StructType*)function->getReturnType();
-    llvm::Value *returnVal = new llvm::AllocaInst(type, "", context.currentBlock());
+    if (function == NULL)
+    {
+        cerr << "no such function " << rhs.id.name << endl;
+    }
 
-    llvm::CallInst *call = (llvm::CallInst*)rhs.codeGen(context);
-    llvm::Value *storeVal = new llvm::StoreInst(call, returnVal, false, context.currentBlock());
+    llvm::StructType *type = (llvm::StructType*)function->arg_begin()->getType();
+    llvm::Value *returnVal = new llvm::AllocaInst(type, "", context.currentBlock());
+    llvm::Value *ptr = context.currentBuilder()->CreateBitOrPointerCast(returnVal, type);
+    ptr->dump();
+
+
+    // Call func
+    vector<llvm::Value*> args;
+    args.push_back(ptr);
+
+    ExpressionList::const_iterator arg_it;
+    for (arg_it = rhs.arguments.begin(); arg_it != rhs.arguments.end(); arg_it++)
+    {
+        args.push_back((**arg_it).codeGen(context));
+    }
+    llvm::CallInst *call = llvm::CallInst::Create(function, makeArrayRef(args), "", context.currentBlock());
+    call->dump();
+
+    std::cout << "Creating method call: " << rhs.id.name << endl;
 
     vector<llvm::Value*> indices;
 
@@ -146,7 +164,7 @@ llvm::Value* NAssignmentMethodCall::codeGen(CodeGenContext& context)
         if(i < type->getNumElements())
         {
             indices.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, i, false)));
-            llvm::GetElementPtrInst *elementPtr = llvm::GetElementPtrInst::CreateInBounds(returnVal, indices, "", context.currentBlock());
+            llvm::GetElementPtrInst *elementPtr = llvm::GetElementPtrInst::CreateInBounds(ptr, indices, "", context.currentBlock());
 
             llvm::Value* loadPtr = new llvm::LoadInst(elementPtr, "", context.currentBlock());
             llvm::Value* storeInst = new llvm::StoreInst(loadPtr, context.locals()[(**it).name], false, context.currentBlock());
@@ -167,8 +185,9 @@ llvm::Value* NExpressionStatement::codeGen(CodeGenContext& context)
 llvm::Value* NReturnStatement::codeGen(CodeGenContext& context)
 {
     llvm::Function *function = context.getCurrentFunction();
-    llvm::StructType *type = (llvm::StructType*)function->getReturnType();
-    llvm::Value *returnVal = new llvm::AllocaInst(type, "return_struct", context.currentBlock());
+    std::cout << "Generating code for " << function->getName().str() << " return statement." << std::endl;
+    llvm::Function::arg_iterator argsValues = function->arg_begin();
+    llvm::Value *returnVal = argsValues;
 
     vector<llvm::Value*> indices;
     indices.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0, false)));
@@ -188,10 +207,10 @@ llvm::Value* NReturnStatement::codeGen(CodeGenContext& context)
         i++;
     }
 
-    llvm::LoadInst *loadInst = new llvm::LoadInst(returnVal, "", context.currentBlock());
-    context.setCurrentReturnValue(loadInst);
+    //llvm::LoadInst *loadInst = new llvm::LoadInst(returnVal, "", context.currentBlock());
+    //context.setCurrentReturnValue(loadInst);
 
-    return loadInst;
+    return NULL;
 }
 
 llvm::Value* NVariableDeclaration::codeGen(CodeGenContext& context)
@@ -224,11 +243,6 @@ llvm::Value* NExternDeclaration::codeGen(CodeGenContext& context)
 llvm::Value* NFunctionDeclaration::codeGen(CodeGenContext& context)
 {
     vector<llvm::Type*> argTypes;
-    VariableList::const_iterator it;
-    for (it = arguments.begin(); it != arguments.end(); it++)
-    {
-        argTypes.push_back(typeOf((**it).type));
-    }
 
     // Create return struct
     vector<llvm::Type*> returnTypes;
@@ -239,9 +253,18 @@ llvm::Value* NFunctionDeclaration::codeGen(CodeGenContext& context)
     }
 
     string structTypeName = id.name + "_return_struct";
-    llvm::StructType* rstruct = llvm::StructType::create(llvm::getGlobalContext(), llvm::ArrayRef<llvm::Type*>(returnTypes), structTypeName.c_str(), false); // isPacked
+    llvm::StructType *rstruct = llvm::StructType::create(llvm::getGlobalContext(), llvm::ArrayRef<llvm::Type*>(returnTypes), structTypeName.c_str(), false); // isPacked
+    llvm::PointerType *structPtr = llvm::PointerType::get(rstruct, 0);
+    argTypes.push_back(structPtr);
 
-    llvm::FunctionType *ftype = llvm::FunctionType::get(rstruct, llvm::makeArrayRef(argTypes), false);
+    // Add actual args
+    VariableList::const_iterator it;
+    for (it = arguments.begin(); it != arguments.end(); it++)
+    {
+        argTypes.push_back(typeOf((**it).type));
+    }
+
+    llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), llvm::makeArrayRef(argTypes), false);
     llvm::Function *function = llvm::Function::Create(ftype, llvm::GlobalValue::InternalLinkage, id.name.c_str(), context.module);
     llvm::BasicBlock *bblock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", function, 0);
 
@@ -250,6 +273,12 @@ llvm::Value* NFunctionDeclaration::codeGen(CodeGenContext& context)
 
     llvm::Function::arg_iterator argsValues = function->arg_begin();
     llvm::Value* argumentValue;
+
+    // First the return pointer
+    argsValues++;
+    //argumentValue = argsValues++;
+    //argumentValue->dump();
+    //llvm::StoreInst *inst = new llvm::StoreInst(argumentValue, context.locals()[structTypeName + "_instance"], false, bblock);
 
     for (it = arguments.begin(); it != arguments.end(); it++)
     {
@@ -261,7 +290,7 @@ llvm::Value* NFunctionDeclaration::codeGen(CodeGenContext& context)
     }
 
     block.codeGen(context);
-    llvm::ReturnInst::Create(llvm::getGlobalContext(), context.getCurrentReturnValue(), bblock);
+    llvm::ReturnInst::Create(llvm::getGlobalContext(), NULL, bblock);
 
     context.popBlock();
 

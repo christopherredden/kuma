@@ -25,6 +25,7 @@
 #include "llvm/Pass.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
@@ -41,6 +42,7 @@ public:
     llvm::Value* currentReturnValue;
     llvm::Function* currentFunction;
     map<string, llvm::Value*> locals;
+    llvm::IRBuilder<> *builder;
 };
 
 class CodeGenContext
@@ -51,16 +53,17 @@ private:
 
 public:
     llvm::Module *module;
-    llvm::IRBuilder<> *builder;
-    CodeGenContext() { module = new llvm::Module("main", llvm::getGlobalContext()); builder = new llvm::IRBuilder<>(llvm::getGlobalContext()); }
+    llvm::IRBuilder<> *globalBuilder;
+    CodeGenContext() { module = new llvm::Module("ks__main__module", llvm::getGlobalContext()); globalBuilder = new llvm::IRBuilder<>(llvm::getGlobalContext()); }
 
     void generateCode(NBlock& root);
     llvm::GenericValue runCode();
 
     map<string, llvm::Value*>& locals() { return blocks.top()->locals; }
     llvm::BasicBlock *currentBlock() { return blocks.top()->block; }
+    llvm::IRBuilder<> *currentBuilder() { return blocks.top()->builder; }
 
-    void pushBlock(llvm::BasicBlock *block) { blocks.push(new CodeGenBlock()); blocks.top()->block = block; }
+    void pushBlock(llvm::BasicBlock *block) { blocks.push(new CodeGenBlock()); blocks.top()->block = block; blocks.top()->builder = new llvm::IRBuilder<>(block);}
     void popBlock() { CodeGenBlock *top = blocks.top(); blocks.pop(); delete top; }
 
     void setCurrentReturnValue(llvm::Value *value) { blocks.top()->currentReturnValue = value; }

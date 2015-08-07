@@ -32,4 +32,4 @@ set(SOURCE_FILES
     )
 
 add_executable(kuma ${SOURCE_FILES})
-target_link_libraries(kuma ${LLVM_AVAILABLE_LIBS})
+target_link_libraries(kuma ${LLVM_AVAILABLE_LIBS} LLVMInterpreter LLVMExecutionEngine)
