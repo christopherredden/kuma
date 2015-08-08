@@ -28,7 +28,7 @@ void CodeGenContext::generateCode(NBlock &root)
 {
     std::cout << "Generating code...\n";
 
-    //generateStdlib(*this);
+    generateStdlib(*this);
 
     vector<llvm::Type*> argTypes;
     llvm::FunctionType *functype = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), llvm::makeArrayRef(argTypes), false);
@@ -53,10 +53,25 @@ llvm::GenericValue CodeGenContext::runCode()
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
+
+    //module->setTargetTriple("x86_64-apple-darwin11.0.0");
+
+    if(llvm::Triple(llvm::sys::getProcessTriple()).isOSDarwin())
+    {
+        module->addModuleFlag(llvm::Module::Warning, "Dwarf Version", 2);
+    }
+
     llvm::ExecutionEngine *ee = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module))
                                                     .setErrorStr(&errStr)
-                                                    .setEngineKind(llvm::EngineKind::JIT)
+                                                    .setVerifyModules(true)
+                                                    .setMCJITMemoryManager(llvm::make_unique<llvm::SectionMemoryManager>())
                                                     .create();
+    ee->finalizeObject();
+    cout << "Target Triple: " << ee->getTargetMachine()->getTargetTriple().str() << endl;
+
+    //module->setDataLayout(ee->getDataLayout());
+
+    cout << errStr << endl;
 
     if(ee == NULL)
     {

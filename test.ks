@@ -1,3 +1,5 @@
+println(5)
+
 def bar(int a, int b)(int, double, int)
     int total = a + b
 

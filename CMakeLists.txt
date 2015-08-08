@@ -31,5 +31,61 @@ set(SOURCE_FILES
     codegen.cpp
     )
 
+set(LLVM_CORE
+    LLVMCore
+    LLVMSupport
+    )
+
+set(LLVM_EXECUTIONENGINE
+    LLVMExecutionEngine
+    LLVMRuntimeDyld
+    LLVMObject
+    LLVMMCParser
+    LLVMBitReader
+    LLVMMC
+    LLVMCore
+    LLVMSupport
+    )
+
+set(LLVM_MCJIT
+    LLVMMCJIT
+    LLVMTarget
+    LLVMExecutionEngine
+    LLVMRuntimeDyld
+    LLVMObject
+    LLVMMCParser
+    LLVMBitReader
+    LLVMMC
+    LLVMCore
+    LLVMSupport
+    )
+
+set(LLVM_NATIVE
+    LLVMX86Disassembler
+    LLVMX86AsmParser
+    LLVMX86CodeGen
+    LLVMSelectionDAG
+    LLVMAsmPrinter
+    LLVMCodeGen
+    LLVMScalarOpts
+    LLVMProfileData
+    LLVMInstCombine
+    LLVMTransformUtils
+    LLVMipa
+    LLVMAnalysis
+    LLVMTarget
+    LLVMX86Desc
+    LLVMObject
+    LLVMMCParser
+    LLVMBitReader
+    LLVMMCDisassembler
+    LLVMX86Info
+    LLVMX86AsmPrinter
+    LLVMMC
+    LLVMX86Utils
+    LLVMCore
+    LLVMSupport
+    )
+
 add_executable(kuma ${SOURCE_FILES})
-target_link_libraries(kuma ${LLVM_AVAILABLE_LIBS} LLVMInterpreter LLVMExecutionEngine)
+target_link_libraries(kuma ${LLVM_CORE} ${LLVM_EXECUTIONENGINE} ${LLVM_MCJIT} ${LLVM_NATIVE})

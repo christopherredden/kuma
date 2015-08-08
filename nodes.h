@@ -119,9 +119,9 @@ public:
     NIdentifier& id;
     NExpression *assignmentExpr;
     NVariableDeclaration(const NIdentifier& type, NIdentifier& id) :
-            type(type), id(id) { }
+            type(type), id(id), assignmentExpr(NULL) { }
     NVariableDeclaration(const NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr) :
-            type(type), id(id), assignmentExpr(assignmentExpr) { }
+            type(type), id(id), assignmentExpr(assignmentExpr) {}
     virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
