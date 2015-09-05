@@ -88,6 +88,19 @@ void generateStringFunctions(CodeGenContext& context)
                                                           "kuma_string_copy", context.module);
         context.addFunction("kuma_string_copy", function, 0, true);
     }
+
+    // kuma_string_set
+    {
+        vector<llvm::Type *> args;
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+
+        llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()),
+                                                                   llvm::makeArrayRef(args), false);
+        llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage,
+                                                          "kuma_string_set", context.module);
+        context.addFunction("kuma_string_set", function, 0, true);
+    }
 }
 
 void generateStdlib(CodeGenContext& context)

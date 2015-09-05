@@ -1,6 +1,15 @@
+let mystring = "kjasdjkads"
+let mystring2 = mystring
+let mystring3
+let mystring4
+
+mystring3 = "askjfkasjf"
+mystring4 = mystring3
+
 let foo:int = 6
 let bar = 10
 let foobar = 23+24
+let mybar:double = 4.4
 
 def add(a:int, b:int)(int, double)
     let result:int = 0

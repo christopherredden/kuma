@@ -49,6 +49,13 @@ public:
     virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
+class NString : public NExpression {
+public:
+    std::string value;
+    NString(std::string value) : value(value) { }
+    virtual llvm::Value* codeGen(CodeGenContext& context);
+};
+
 class NIdentifier : public NExpression {
 public:
     std::string name;
@@ -140,6 +147,9 @@ public:
     NIdentifier *id;
     NIdentifier *type;
     NExpression *assignmentExpr;
+
+    NVariableDeclaration(NIdentifier *id) :
+            id(id), type(NULL), assignmentExpr(NULL) { }
 
     NVariableDeclaration(NIdentifier *id, NIdentifier *type) :
             id(id), type(type), assignmentExpr(NULL) { }

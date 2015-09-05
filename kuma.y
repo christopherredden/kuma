@@ -78,7 +78,7 @@ typedef void* yyscan_t;
 %type <token> comparison*/
 
 %type <ident> identifier function_declaration_return
-%type <expr> expression numeric_expression multiply_expression divide_expression add_expression subtract_expression identifier_expression function_call_expression
+%type <expr> expression numeric_expression multiply_expression divide_expression add_expression subtract_expression identifier_expression function_call_expression string_expression
 %type <block> chunk statement_list
 %type <stmt> statement flow_statement variable_declaration function_declaration function_declaration_argument assignment_statement
 %type <varvec> function_declaration_argument_list
@@ -124,8 +124,8 @@ identifier
     ;
 
 variable_declaration
-    /*: TLET identifier { $$ = new NInferredVariableDeclaration($2); }*/
-    : TLET identifier TCOLON identifier { $$ = new NVariableDeclaration($2, $4); }
+    : TLET identifier { $$ = new NVariableDeclaration($2); }
+    | TLET identifier TCOLON identifier { $$ = new NVariableDeclaration($2, $4); }
     | TLET identifier TEQUAL expression { $$ = new NVariableDeclaration($2, $4); }
     | TLET identifier TCOLON identifier TEQUAL expression { $$ = new NVariableDeclaration($2, $4, $6); }
     ;
@@ -159,6 +159,7 @@ expression_list
 
 expression
     : numeric_expression
+    | string_expression
     | multiply_expression
     | divide_expression
     | add_expression
@@ -178,6 +179,10 @@ identifier_expression
 numeric_expression
     : TINTEGER { $$ = new NInteger(atol($1->c_str())); }
     | TDOUBLE { $$ = new NDouble(atof($1->c_str())); }
+    ;
+
+string_expression
+    : TSTRING { $$ = new NString(*$<string>1); }
     ;
 
 multiply_expression

@@ -96,3 +96,19 @@ void kuma_string_copy(u_int8_t *kstring_dest, u_int8_t *kstring_src)
 
     memcpy(kstring_dest_ptr->buf, kstring_src_ptr->buf, kstring_dest_ptr->buffer_size);
 }
+
+void kuma_string_set(u_int8_t *kstring_dest, const char *src)
+{
+    __ks__string__type *kstring_dest_ptr = (__ks__string__type *) kstring_dest;
+
+    if (kstring_dest_ptr->buf != 0)
+    {
+        free(kstring_dest_ptr->buf);
+    }
+
+    kstring_dest_ptr->string_len = strlen(src);
+    kstring_dest_ptr->buffer_size = strlen(src) + 1;
+    kstring_dest_ptr->buf = (u_int8_t*) malloc(kstring_dest_ptr->buffer_size);
+
+    memcpy(kstring_dest_ptr->buf, src, kstring_dest_ptr->buffer_size);
+}

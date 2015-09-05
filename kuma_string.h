@@ -25,6 +25,7 @@ void kuma_string_resize(u_int8_t *kstring, u_int32_t size);
 void kuma_string_add_char(u_int8_t *kstring, u_int8_t char_value);
 void kuma_string_append(u_int8_t *kstring_dest, u_int8_t *kstring_src);
 void kuma_string_copy(u_int8_t *kstring_dest, u_int8_t *kstring_src);
+void kuma_string_set(u_int8_t *kstring_dest, const char *src);
 
 };
 

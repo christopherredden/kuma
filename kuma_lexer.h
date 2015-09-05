@@ -338,7 +338,7 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#line 73 "kuma.l"
+#line 74 "kuma.l"
 
 
 #line 345 "kuma_lexer.h"
