@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 20 "kuma.y" /* yacc.c:1915  */
+#line 23 "kuma.y" /* yacc.c:1915  */
 
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -76,10 +76,16 @@ typedef void* yyscan_t;
     TMINUS = 275,
     TMUL = 276,
     TDIV = 277,
-    TRETURN = 278,
-    TEXTERN = 279,
-    TFUNCDEF = 280,
-    TEND = 281
+    TEXTERN = 278,
+    TSTRING = 279,
+    TLET = 280,
+    TCOLON = 281,
+    TCLASSDEF = 282,
+    TFUNCDEF = 283,
+    TEND = 284,
+    TRETURN = 285,
+    TBREAK = 286,
+    TCONTINUE = 287
   };
 #endif
 
@@ -88,23 +94,20 @@ typedef void* yyscan_t;
 
 union YYSTYPE
 {
-#line 38 "kuma.y" /* yacc.c:1915  */
+#line 41 "kuma.y" /* yacc.c:1915  */
 
 	Node *node;
 	NBlock *block;
 	NExpression *expr;
-	NMethodCall *methodcall;
-	NReturnStatement *returnstatement;
 	NStatement *stmt;
 	NIdentifier *ident;
-	NVariableDeclaration *var_decl;
-	std::vector<NVariableDeclaration*> *varvec;
-	std::vector<NIdentifier*> *identvec;
-	std::vector<NExpression*> *exprvec;
+	std::vector<NVariableDeclaration *> *varvec;
+	std::vector<NIdentifier *> *identvec;
+	std::vector<NExpression *> *exprvec;
 	std::string *string;
 	int token;
 
-#line 108 "kuma_parser.h" /* yacc.c:1915  */
+#line 111 "kuma_parser.h" /* yacc.c:1915  */
 };
 
 typedef union YYSTYPE YYSTYPE;

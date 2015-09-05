@@ -20,10 +20,13 @@ set(OTHER_FILES
     )
 
 set(SOURCE_FILES
+    kuma.h
     kuma_parser.cpp
     kuma_parser.h
     kuma_lexer.h
     kuma_lexer.cpp
+    kuma_string.h
+    kuma_string.cpp
     main.cpp
     nodes.h
     nodes.cpp

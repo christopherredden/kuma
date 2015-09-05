@@ -37,20 +37,39 @@ using namespace std;
 
 class NBlock;
 
+class CodeGenLocal
+{
+public:
+    llvm::Value *value;
+    int type;
+
+    CodeGenLocal(llvm::Value* value, int type) : value(value), type(type) {}
+    CodeGenLocal() : value(0), type(0) {}
+};
+
 class CodeGenBlock
 {
 public:
     llvm::BasicBlock* block;
     llvm::Value* currentReturnValue;
     llvm::Function* currentFunction;
-    map<string, llvm::Value*> locals;
+    map<string, CodeGenLocal> locals;
     llvm::IRBuilder<> *builder;
+};
+
+class CodeGenFunction
+{
+public:
+    bool isExtern;
+    int numReturns;
+    llvm::Function *functionValue;
 };
 
 class CodeGenContext
 {
 private:
     stack<CodeGenBlock *> blocks;
+    map<string, CodeGenFunction> functionMap;
     llvm::Function *mainFunction;
 
 public:
@@ -61,9 +80,20 @@ public:
     void generateCode(NBlock& root);
     llvm::GenericValue runCode();
 
-    map<string, llvm::Value*>& locals() { return blocks.top()->locals; }
+    map<string, CodeGenLocal>& locals() { return blocks.top()->locals; }
+    map<string, CodeGenFunction> &functions() { return functionMap; }
     llvm::BasicBlock *currentBlock() { return blocks.top()->block; }
     llvm::IRBuilder<> *currentBuilder() { return blocks.top()->builder; }
+
+    void addFunction(string name, llvm::Function *function, int numReturns, bool isExtern)
+    {
+        CodeGenFunction codeGenFunction;
+        codeGenFunction.functionValue = function;
+        codeGenFunction.numReturns = numReturns;
+        codeGenFunction.isExtern = isExtern;
+
+        functionMap[name] = codeGenFunction;
+    }
 
     void pushBlock(llvm::BasicBlock *block) { blocks.push(new CodeGenBlock()); blocks.top()->block = block; blocks.top()->builder = new llvm::IRBuilder<>(block);}
     void popBlock() { CodeGenBlock *top = blocks.top(); blocks.pop(); delete top; }

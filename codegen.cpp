@@ -9,9 +9,84 @@ using namespace std;
 
 extern "C"
 {
-    void println(long long v)
+    void println(int v)
     {
         printf("Kuma Print: %d\n", v);
+    }
+}
+
+void generateStringFunctions(CodeGenContext& context)
+{
+    // kuma_string_create
+    {
+        llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()), false);
+        llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage,
+                                                          "kuma_string_create", context.module);
+        context.addFunction("kuma_string_create", function, 1, true);
+    }
+
+    // kuma_string_destroy
+    {
+        vector<llvm::Type *> args;
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+
+        llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()),
+                                                                   llvm::makeArrayRef(args), false);
+        llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage,
+                                                          "kuma_string_destroy", context.module);
+        context.addFunction("kuma_string_destroy", function, 0, true);
+    }
+
+    // kuma_string_resize
+    {
+        vector<llvm::Type *> args;
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+        args.push_back(llvm::Type::getInt32Ty(llvm::getGlobalContext()));
+
+        llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()),
+                                                                   llvm::makeArrayRef(args), false);
+        llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage,
+                                                          "kuma_string_resize", context.module);
+        context.addFunction("kuma_string_resize", function, 0, true);
+    }
+
+    // kuma_string_add_char
+    {
+        vector<llvm::Type *> args;
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+        args.push_back(llvm::Type::getInt8Ty(llvm::getGlobalContext()));
+
+        llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()),
+                                                                   llvm::makeArrayRef(args), false);
+        llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage,
+                                                          "kuma_string_add_char", context.module);
+        context.addFunction("kuma_string_add_char", function, 0, true);
+    }
+
+    // kuma_string_append
+    {
+        vector<llvm::Type *> args;
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+
+        llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()),
+                                                                   llvm::makeArrayRef(args), false);
+        llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage,
+                                                          "kuma_string_append", context.module);
+        context.addFunction("kuma_string_append", function, 0, true);
+    }
+
+    // kuma_string_copy
+    {
+        vector<llvm::Type *> args;
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+        args.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
+
+        llvm::FunctionType *functionType = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()),
+                                                                   llvm::makeArrayRef(args), false);
+        llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::ExternalLinkage,
+                                                          "kuma_string_copy", context.module);
+        context.addFunction("kuma_string_copy", function, 0, true);
     }
 }
 
@@ -22,6 +97,10 @@ void generateStdlib(CodeGenContext& context)
 
     llvm::FunctionType *functype = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), llvm::makeArrayRef(argTypes), false);
     llvm::Function *function = llvm::Function::Create(functype, llvm::GlobalValue::ExternalLinkage, "println", context.module);
+    context.addFunction("println", function, 0, true);
+
+    // String Functions
+    generateStringFunctions(context);
 }
 
 void CodeGenContext::generateCode(NBlock &root)
