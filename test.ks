@@ -2,29 +2,8 @@ let mystring = "kjasdjkads"
 let mystring2 = mystring
 let mystring3
 let mystring4
-
-mystring3 = "askjfkasjf"
+let myint
+let myint2 = 5
+myint = 2
+mystring3 = "asjdkad"
 mystring4 = mystring3
-
-let foo:int = 6
-let bar = 10
-let foobar = 23+24
-let mybar:double = 4.4
-
-def add(a:int, b:int)(int, double)
-    let result:int = 0
-    result = a + b
-
-    return result, 5.5
-end
-
-def two(a:int)(int, int)
-    return 91, 9
-end
-
-let myresult:int = add(foo, bar)
-
-println(myresult)
-println(add(9, bar))
-println(add(40, 2))
-println(add(two(0)))

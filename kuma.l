@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 
-#define SAVE_TOKEN  yylval->string = new std::string(yytext, yyleng)
+#define SAVE_TOKEN  yylval->string = new std::string(yytext, yyleng); printf("String Text: %s\n", yytext);
 #define TOKEN(t)    (yylval->token = t)
 
 %}
@@ -42,7 +42,7 @@ WS          [ \r\n\t]*
 "end"                           return TOKEN(TEND);
 "let"                           return TOKEN(TLET);
 [a-zA-Z_][a-zA-Z0-9_]*          SAVE_TOKEN; return TIDENTIFIER;
-\"(\\.|[^"])*\"                 SAVE_TOKEN; return TSTRING;
+\"(\\.|[^\\"])*\"               SAVE_TOKEN; return TSTRING;
 [0-9]+\.[0-9]* 			        SAVE_TOKEN; return TDOUBLE;
 [0-9]+					        SAVE_TOKEN; return TINTEGER;
 

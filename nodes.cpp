@@ -84,6 +84,24 @@ static int kumaTypeOf(NIdentifier *type)
     return 0;
 }
 
+static llvm::Type *typeOf(int kumaType)
+{
+    if (kumaType == KUMA_TYPE_INT || kumaType == KUMA_TYPE_CONST_INT)
+    {
+        return llvm::Type::getInt32Ty(llvm::getGlobalContext());
+    }
+    else if (kumaType == KUMA_TYPE_DOUBLE || kumaType == KUMA_TYPE_CONST_DOUBLE)
+    {
+        return llvm::Type::getDoubleTy(llvm::getGlobalContext());
+    }
+    else if (kumaType == KUMA_TYPE_STRING || kumaType == KUMA_TYPE_CONST_STRING)
+    {
+        return llvm::Type::getInt8PtrTy(llvm::getGlobalContext());
+    }
+
+    return 0;
+}
+
 static std::string kumaTypeName(int kumaType)
 {
     if (kumaType == KUMA_TYPE_INT)
@@ -116,16 +134,29 @@ llvm::Value* NBlock::codeGen(CodeGenContext& context)
     return last;
 }
 
+llvm::Value *NString::codeGen(CodeGenContext &context)
+{
+    std::cout << "Creating string: " << value << std::endl;
+    value = value.substr(1, value.length() - 2);
+    llvm::Value *val = context.currentBuilder()->CreateGlobalStringPtr(value.c_str());
+    SET_KUMA_TYPE(val, KUMA_TYPE_CONST_STRING);
+    return val;
+}
+
 llvm::Value* NInteger::codeGen(CodeGenContext& context)
 {
     std::cout << "Creating integer: " << value << std::endl;
-    return llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), value, true);
+    Value *val = llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), value, true);
+    SET_KUMA_TYPE(val, KUMA_TYPE_CONST_INT);
+    return val;
 }
 
 llvm::Value* NDouble::codeGen(CodeGenContext& context)
 {
     std::cout << "Creating double: " << value << std::endl;
-    return llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()), value);
+    Value *val = llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()), value);
+    SET_KUMA_TYPE(val, KUMA_TYPE_CONST_DOUBLE);
+    return val;
 }
 
 llvm::Value* NIdentifier::codeGen(CodeGenContext& context)
@@ -137,61 +168,14 @@ llvm::Value* NIdentifier::codeGen(CodeGenContext& context)
         return NULL;
     }
 
-    return new llvm::LoadInst(context.locals()[name].value, "", false, context.currentBlock());
-}
-
-llvm::Value* NAssignmentMethodCall::codeGen(CodeGenContext& context)
-{
-    llvm::Function *function = context.module->getFunction(rhs->id->name.c_str());
-    if (function == NULL)
+    if (L(name).type == KUMA_TYPE_UNKNOWN)
     {
-        cerr << "no such function " << rhs->id->name << endl;
+        std::cerr << "Use of unassigned variable: " << name << endl;
     }
 
-    llvm::StructType *type = (llvm::StructType*)function->arg_begin()->getType();
-    llvm::Value *returnVal = new llvm::AllocaInst(type, "", context.currentBlock());
-    llvm::Value *ptr = context.currentBuilder()->CreateBitOrPointerCast(returnVal, type);
-
-
-    // Call func
-    vector<llvm::Value*> args;
-    args.push_back(ptr);
-
-    ExpressionList::const_iterator arg_it;
-    for (arg_it = rhs->arguments.begin(); arg_it != rhs->arguments.end(); arg_it++)
-    {
-        args.push_back((**arg_it).codeGen(context));
-    }
-    llvm::CallInst *call = llvm::CallInst::Create(function, makeArrayRef(args), "", context.currentBlock());
-
-    std::cout << "Creating method call: " << rhs->id->name << endl;
-
-    vector<llvm::Value*> indices;
-    indices.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, 0, false)));
-
-    unsigned i = 0;
-    IdentList::const_iterator it;
-    for (it = lhs->begin(); it != lhs->end(); it++)
-    {
-        if (context.locals().find((**it).name) == context.locals().end())
-        {
-            std::cerr << "undeclared variable " << (**it).name << endl;
-            return NULL;
-        }
-
-        if(i < type->getNumElements())
-        {
-            indices.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(32, i, false)));
-            llvm::GetElementPtrInst *elementPtr = llvm::GetElementPtrInst::CreateInBounds(ptr, indices, "", context.currentBlock());
-
-            llvm::Value* loadPtr = new llvm::LoadInst(elementPtr, "", context.currentBlock());
-            llvm::Value* storeInst = new llvm::StoreInst(loadPtr, context.locals()[(**it).name].value, false, context.currentBlock());
-            indices.pop_back();
-        }
-        i++;
-    }
-
-    return NULL;
+    Value *val = new llvm::LoadInst(context.locals()[name].value, "", false, context.currentBlock());
+    SET_KUMA_TYPE(val, L(name).type);
+    return val;
 }
 
 llvm::Value* NVariableDeclaration::codeGen(CodeGenContext& context)
@@ -209,70 +193,72 @@ llvm::Value* NVariableDeclaration::codeGen(CodeGenContext& context)
         }
     }
 
+    // If we have no type, infer it from assignment
+    int kumaType = 0;
     if(type == NULL && assignValue != NULL)
     {
-        llvmType = assignValue->getType();
+        kumaType = GET_KUMA_TYPE(assignValue);
 
-        if(llvmType->isPointerTy() && llvmType->getPointerElementType()->isArrayTy())
+        if(kumaType == KUMA_TYPE_STRING || kumaType == KUMA_TYPE_CONST_STRING)
         {
-            llvmType = llvm::Type::getInt8PtrTy(llvm::getGlobalContext());
+            kumaType = KUMA_TYPE_STRING;
         }
+
+        llvmType = typeOf(kumaType);
     }
     else if(type != NULL)
     {
+        kumaType = kumaTypeOf(type);
         llvmType = typeOf(type);
     }
 
-    if(llvmType != NULL)
+    // If we still have no type, we will defer
+    if(llvmType == NULL)
+    {
+        // Add to Future context checking
+        context.locals()[id->name] = CodeGenLocal();
+        std::cout << "Creating deferred variable: " << id->name << endl;
+    }
+    else
     {
         std::cout << "Creating variable declaration " << typeOf(llvmType) << " " << id->name << std::endl;
-        alloc = new llvm::AllocaInst(llvmType, id->name.c_str(), context.currentBlock());
-        context.locals()[id->name] = CodeGenLocal(alloc, kumaTypeOf(llvmType));
+        alloc = B().CreateAlloca(llvmType, NULL, id->name.c_str());
+        SET_LOCAL(id->name, alloc, kumaType);
+        SET_KUMA_TYPE(alloc, kumaType);
 
-        if(kumaTypeOf(llvmType) == KUMA_TYPE_STRING)
+        if(kumaType == KUMA_TYPE_STRING || kumaType == KUMA_TYPE_CONST_STRING)
         {
             llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_create");
             llvm::Value *v = context.currentBuilder()->CreateCall(stringCreateFunction);
             context.currentBuilder()->CreateStore(v, alloc);
         }
 
-        // Debug Info
-        std::string typeNameString = kumaTypeName(kumaTypeOf(llvmType));
-        llvm::MDString *typeName = llvm::MDString::get(llvm::getGlobalContext(), typeNameString);
-        llvm::MDNode *mdNode = llvm::MDNode::get(llvm::getGlobalContext(), typeName);
-        alloc->setMetadata("TYPE", mdNode);
-
         if(assignValue != NULL)
         {
-            if(kumaTypeOf(llvmType) == KUMA_TYPE_STRING)
+            if(kumaType == KUMA_TYPE_STRING)
             {
-                if(assignValue->getType()->getPointerElementType()->isArrayTy())
+                if(GET_KUMA_TYPE(assignValue) == KUMA_TYPE_CONST_STRING)
                 {
-                    llvm::Value *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0);
-                    llvm::Value *Args[] = { zero, zero };
-                    llvm::Value *assignValuePtr = context.currentBuilder()->CreateGEP(assignValue, Args);
-
                     llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(alloc);
                     llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_set");
-                    llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, assignValuePtr);
+                    llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, assignValue);
                 }
-                else
+                else if(GET_KUMA_TYPE(assignValue) == KUMA_TYPE_STRING)
                 {
                     llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(alloc);
                     llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_copy");
                     llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, assignValue);
                 }
+                else
+                {
+                    cerr << "Unable to assign to string.";
+                }
             }
             else
             {
-                new llvm::StoreInst(assignValue, alloc, false, context.currentBlock());
+                B().CreateStore(assignValue, alloc);
             }
         }
-    }
-    else
-    {
-        // Add to Future context checking
-        context.locals()[id->name] = CodeGenLocal();
     }
 
     return alloc;
@@ -551,7 +537,9 @@ llvm::Value* NBinaryOperator::codeGen(CodeGenContext& context)
         default:        return NULL;
     }
 
-    return llvm::BinaryOperator::Create(instr, lhs->codeGen(context), rhs->codeGen(context), "", context.currentBlock());
+    Value *val = llvm::BinaryOperator::Create(instr, lhs->codeGen(context), rhs->codeGen(context), "", context.currentBlock());
+    SET_KUMA_TYPE(val, KUMA_TYPE_INT);
+    return val;
 }
 
 llvm::Value* NExpressionStatement::codeGen(CodeGenContext& context)
@@ -559,8 +547,6 @@ llvm::Value* NExpressionStatement::codeGen(CodeGenContext& context)
     std::cout << "Generating code for " << typeid(expression).name() << std::endl;
     return expression->codeGen(context);
 }
-
-
 
 llvm::Value* NExternDeclaration::codeGen(CodeGenContext& context)
 {
@@ -783,12 +769,3 @@ llvm::Value *NReturnStatement::codeGenSingleReturn(CodeGenContext &context)
     return returnVal;
 }
 
-llvm::Value *NString::codeGen(CodeGenContext &context)
-{
-    std::cout << "Creating string: " << value << std::endl;
-
-    //llvm::Constant *constStr = llvm::ConstantDataArray::getString(llvm::getGlobalContext(), value.c_str(), true);
-    llvm::Value *val = context.currentBuilder()->CreateGlobalString(value.c_str());
-
-    return val;
-}

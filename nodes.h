@@ -101,17 +101,6 @@ public:
     virtual llvm::Value* codeGen(CodeGenContext& context);
 };
 
-class NAssignmentMethodCall : public NExpression {
-public:
-    IdentList *lhs;
-    NMethodCall *rhs;
-
-    NAssignmentMethodCall(IdentList *lhs, NMethodCall *rhs) :
-            lhs(lhs), rhs(rhs) { }
-
-    virtual llvm::Value* codeGen(CodeGenContext& context);
-};
-
 class NBlock : public NExpression {
 public:
     StatementList statements;
@@ -158,21 +147,6 @@ public:
             id(id), type(type), assignmentExpr(assignmentExpr) {}
 
     NVariableDeclaration(NIdentifier *id, NExpression *assignmentExpr) :
-            id(id), type(NULL), assignmentExpr(assignmentExpr) {}
-
-    virtual llvm::Value* codeGen(CodeGenContext& context);
-};
-
-class NInferredVariableDeclaration : public NStatement {
-public:
-    NIdentifier *id;
-    NIdentifier *type;
-    NExpression *assignmentExpr;
-
-    NInferredVariableDeclaration(NIdentifier *id) :
-        id(id), type(NULL), assignmentExpr(NULL) {}
-
-    NInferredVariableDeclaration(NIdentifier *id, NExpression *assignmentExpr) :
             id(id), type(NULL), assignmentExpr(assignmentExpr) {}
 
     virtual llvm::Value* codeGen(CodeGenContext& context);

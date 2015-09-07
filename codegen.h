@@ -33,10 +33,18 @@
 #include "llvm/Support/Host.h"
 #include "llvm/ADT/Triple.h"
 
+#define GET_KUMA_TYPE(v) context.values()[(llvm::Value*)v]
+#define SET_KUMA_TYPE(v, t) context.values()[(llvm::Value*)v] = t
+
+#define SET_LOCAL(n, v, t) context.locals()[n] = CodeGenLocal(v, t);
+
+#define B() (*(context.currentBuilder()))
+#define L(n) context.locals()[n]
+
+using namespace llvm;
 using namespace std;
 
 class NBlock;
-
 class CodeGenLocal
 {
 public:
@@ -55,6 +63,7 @@ public:
     llvm::Function* currentFunction;
     map<string, CodeGenLocal> locals;
     llvm::IRBuilder<> *builder;
+    map<Value*, int> values;
 };
 
 class CodeGenFunction
@@ -80,6 +89,7 @@ public:
     void generateCode(NBlock& root);
     llvm::GenericValue runCode();
 
+    map<Value*, int>& values() { return blocks.top()->values; }
     map<string, CodeGenLocal>& locals() { return blocks.top()->locals; }
     map<string, CodeGenFunction> &functions() { return functionMap; }
     llvm::BasicBlock *currentBlock() { return blocks.top()->block; }
