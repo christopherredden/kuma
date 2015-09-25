@@ -282,60 +282,57 @@ llvm::Value* NAssignment::codeGen(CodeGenContext& context)
             std::cout << "Creating assignment for " << (**it).name << std::endl;
 
             auto local = context.locals()[(**it).name];
+            std::string name = (**it).name;
+            int kumaType = GET_KUMA_TYPE(value);
 
             // If Variable not been defined, define it now
-            if(local.type == KUMA_TYPE_UNKNOWN)
+            if (local.type == KUMA_TYPE_UNKNOWN)
             {
                 llvm::Type *llvmType = value->getType();
-                if(llvmType->isPointerTy() && llvmType->getPointerElementType()->isArrayTy())
+
+                if (kumaType == KUMA_TYPE_STRING || kumaType == KUMA_TYPE_CONST_STRING)
                 {
-                    llvmType = llvm::Type::getInt8PtrTy(llvm::getGlobalContext());
+                    kumaType = KUMA_TYPE_STRING;
                 }
 
-                std::string name = (**it).name;
                 std::cout << "Creating variable declaration " << typeOf(llvmType) << " " << name << std::endl;
 
-                llvm::AllocaInst *alloc = new llvm::AllocaInst(llvmType, name.c_str(), context.currentBlock());
-                local.type = kumaTypeOf(llvmType);
-                local.value = alloc;
-                context.locals()[name] = local;
+                llvm::AllocaInst *alloc = B().CreateAlloca(llvmType, NULL, name.c_str());
+                SET_LOCAL(name, alloc, kumaType);
+                SET_KUMA_TYPE(alloc, kumaType);
 
-                if(kumaTypeOf(llvmType) == KUMA_TYPE_STRING)
+                if (kumaType == KUMA_TYPE_STRING)
                 {
                     llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_create");
                     llvm::Value *v = context.currentBuilder()->CreateCall(stringCreateFunction);
                     context.currentBuilder()->CreateStore(v, alloc);
                 }
-
-                // Debug Info
-                std::string typeNameString = kumaTypeName(kumaTypeOf(llvmType));
-                llvm::MDString *typeName = llvm::MDString::get(llvm::getGlobalContext(), typeNameString);
-                llvm::MDNode *mdNode = llvm::MDNode::get(llvm::getGlobalContext(), typeName);
-                alloc->setMetadata("TYPE", mdNode);
             }
 
-            if(local.type == KUMA_TYPE_STRING)
+            // Assign
+            llvm::Value *alloc = L(name).value;
+            if (kumaType == KUMA_TYPE_STRING)
             {
-                if(value->getType()->getPointerElementType()->isArrayTy())
+                if (GET_KUMA_TYPE(value) == KUMA_TYPE_CONST_STRING)
                 {
-                    llvm::Value *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0);
-                    llvm::Value *Args[] = { zero, zero };
-                    llvm::Value *assignValuePtr = context.currentBuilder()->CreateGEP(value, Args);
-
-                    llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(local.value);
+                    llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(alloc);
                     llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_set");
-                    llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, assignValuePtr);
+                    llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, value);
+                }
+                else if (GET_KUMA_TYPE(value) == KUMA_TYPE_STRING)
+                {
+                    llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(alloc);
+                    llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_copy");
+                    llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, value);
                 }
                 else
                 {
-                    llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(local.value);
-                    llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_copy");
-                    llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, value);
+                    cerr << "Unable to assign to string.";
                 }
             }
             else
             {
-                new llvm::StoreInst(value, local.value, false, context.currentBlock());
+                B().CreateStore(value, alloc);
             }
         }
     }
@@ -353,64 +350,60 @@ llvm::Value* NAssignment::codeGen(CodeGenContext& context)
 
             if(i < rhs->values.size())
             {
+                value = rhs->values[i];
                 std::cout << "Creating assignment for " << ident->name << std::endl;
 
                 auto local = context.locals()[ident->name];
+                int kumaType = GET_KUMA_TYPE(value);
 
                 // If Variable not been defined, define it now
-                if(local.type == KUMA_TYPE_UNKNOWN)
+                if (local.type == KUMA_TYPE_UNKNOWN)
                 {
-                    llvm::Type *llvmType = rhs->values[i]->getType();
-                    if(llvmType->isPointerTy() && llvmType->getPointerElementType()->isArrayTy())
+                    llvm::Type *llvmType = value->getType();
+
+                    if (kumaType == KUMA_TYPE_STRING || kumaType == KUMA_TYPE_CONST_STRING)
                     {
-                        llvmType = llvm::Type::getInt8PtrTy(llvm::getGlobalContext());
+                        kumaType = KUMA_TYPE_STRING;
                     }
 
-                    std::string name = ident->name;
-                    std::cout << "Creating variable declaration " << typeOf(llvmType) << " " << name << std::endl;
+                    std::cout << "Creating variable declaration " << typeOf(llvmType) << " " << ident->name << std::endl;
 
-                    llvm::AllocaInst *alloc = new llvm::AllocaInst(llvmType, name.c_str(), context.currentBlock());
-                    local.type = kumaTypeOf(llvmType);
-                    local.value = alloc;
-                    context.locals()[name] = local;
+                    llvm::AllocaInst *alloc = B().CreateAlloca(llvmType, NULL, ident->name.c_str());
+                    SET_LOCAL(ident->name, alloc, kumaType);
+                    SET_KUMA_TYPE(alloc, kumaType);
 
-                    if(kumaTypeOf(llvmType) == KUMA_TYPE_STRING)
+                    if (kumaType == KUMA_TYPE_STRING)
                     {
                         llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_create");
                         llvm::Value *v = context.currentBuilder()->CreateCall(stringCreateFunction);
                         context.currentBuilder()->CreateStore(v, alloc);
                     }
-
-                    // Debug Info
-                    std::string typeNameString = kumaTypeName(kumaTypeOf(llvmType));
-                    llvm::MDString *typeName = llvm::MDString::get(llvm::getGlobalContext(), typeNameString);
-                    llvm::MDNode *mdNode = llvm::MDNode::get(llvm::getGlobalContext(), typeName);
-                    alloc->setMetadata("TYPE", mdNode);
                 }
 
-                if(local.type == KUMA_TYPE_STRING)
+                // Assign
+                llvm::Value *alloc = L(ident->name).value;
+                if (kumaType == KUMA_TYPE_STRING)
                 {
-                    if(rhs->values[i]->getType()->getPointerElementType()->isArrayTy())
+                    if (GET_KUMA_TYPE(value) == KUMA_TYPE_CONST_STRING)
                     {
-                        llvm::Value *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0);
-                        llvm::Value *Args[] = { zero, zero };
-                        llvm::Value *assignValuePtr = context.currentBuilder()->CreateGEP(rhs->values[i], Args);
-
-                        llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(local.value);
+                        llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(alloc);
                         llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_set");
-                        llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, assignValuePtr);
+                        llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, value);
+                    }
+                    else if (GET_KUMA_TYPE(value) == KUMA_TYPE_STRING)
+                    {
+                        llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(alloc);
+                        llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_copy");
+                        llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, value);
                     }
                     else
                     {
-                        llvm::Value *allocPtr = context.currentBuilder()->CreateLoad(local.value);
-                        llvm::Function *stringCreateFunction = context.module->getFunction("kuma_string_copy");
-                        llvm::Value *v = context.currentBuilder()->CreateCall2(stringCreateFunction, allocPtr, rhs->values[i]);
+                        cerr << "Unable to assign to string.";
                     }
                 }
                 else
                 {
-                    new llvm::StoreInst(rhs->values[i], local.value, false,
-                                        context.currentBlock());
+                    B().CreateStore(value, alloc);
                 }
             }
         }
@@ -461,7 +454,11 @@ llvm::Value *NMethodCall::codeGenSingleReturn(CodeGenContext &context)
         }
     }
 
-    args.resize(function->getFunctionType()->getNumParams());
+    if(!(function->isVarArg()))
+    {
+        args.resize(function->getFunctionType()->getNumParams());
+    }
+
     std::cout << "Creating method call: " << id->name << endl;
     llvm::CallInst *call = llvm::CallInst::Create(function, makeArrayRef(args), "", context.currentBlock());
     return call;

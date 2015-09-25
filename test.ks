@@ -1,9 +1,5 @@
-let mystring = "kjasdjkads"
-let mystring2 = mystring
-let mystring3
-let mystring4
-let myint
-let myint2 = 5
-myint = 2
-mystring3 = "asjdkad"
-mystring4 = mystring3
+let mystring = "Hello %d %d"
+let a = 10
+let b = 20
+
+println("Hello %d %d", a, b)

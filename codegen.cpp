@@ -2,16 +2,37 @@
 // Created by Christopher Redden on 01/08/15.
 //
 
+#include <stdarg.h>
+#include <stdio.h>
 #include "codegen.h"
 #include "nodes.h"
+#include "kuma_string.h"
 
 using namespace std;
 
 extern "C"
 {
-    void println(int v)
+
+    void println(u_int8_t *kstring_src, ...)
     {
-        printf("Kuma Print: %d\n", v);
+        //va_list args;
+        //va_start(args, kstring_src);
+        //__ks__string__type *kstring_src_ptr = (__ks__string__type*)kstring_src;
+        //printf((char*)kstring_src_ptr->buf, __VA_ARGS__);
+        //printf("%i %i\n", args);
+        //va_end (args);
+
+        /*va_list ap;
+        int j;
+        double sum = 0;
+
+        va_start(ap, count);
+        for (j = 0; j < count; j++) {
+            sum += va_arg(ap, double);
+        }
+        va_end(ap);*/
+        //printf("Kuma Print: %s\n", kstring_src_ptr->buf);
+        printf((char*)kstring_src);
     }
 }
 
@@ -106,9 +127,9 @@ void generateStringFunctions(CodeGenContext& context)
 void generateStdlib(CodeGenContext& context)
 {
     vector<llvm::Type*> argTypes;
-    argTypes.push_back(llvm::Type::getInt32Ty(llvm::getGlobalContext()));
+    argTypes.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
 
-    llvm::FunctionType *functype = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), llvm::makeArrayRef(argTypes), false);
+    llvm::FunctionType *functype = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), llvm::makeArrayRef(argTypes), true);
     llvm::Function *function = llvm::Function::Create(functype, llvm::GlobalValue::ExternalLinkage, "println", context.module);
     context.addFunction("println", function, 0, true);
 
