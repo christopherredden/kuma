@@ -49,31 +49,51 @@ enum TokenType
     TOK_MINUS,
     TOK_MUL,
     TOK_DIV,
+
+    TOK_ILLEGAL,
 };
 
-struct 
+typedef struct
 {
-    long size;
-    char* buf;
-    char* pc;
+    int type;
+    const char* name;
 
-    struct
+    union
     {
-        int type;
-        const char* name;
+        char* string;
+        double number;
+        int integer;
+    } value;
 
-        union
-        {
-            char* string;
-            double number;
-            int integer;
-        } value;
-    } tok;
-} lex;
+} kuma_token_t;
 
-#define TOKEN(tk) (lex.tok.type = tk), (lex.tok.name = #tk), tk
+typedef struct 
+{
+    const char* filename;
+    char* source;
+    off_t cursor;
+    char last;
 
-char next()
+    int lineno;
+    const char* error;
+
+    kuma_token_t tok;
+
+} kuma_lexer_t;
+
+#define TOKEN(tk) (lex->tok.type = tk), (lex->tok.name = #tk), tk
+
+#define ERROR(msg) (lex->error = msg, TOKEN(TOK_ILLEGAL))
+
+#define NEXT (lex->last = lex->source[lex->cursor++])
+
+#define PREV (lex->source[--lex->cursor] = lex->last)
+
+#define PEEK (lex->source[lex->cursor+1])
+
+#define CURRENT (lex->last)
+
+/*char next()
 {
     if(lex.pc == 0)
     {
@@ -124,7 +144,7 @@ char current()
     }
 
     return *lex.pc;
-}
+}*/
 
 char *strdup (const char *s) 
 {
@@ -134,23 +154,25 @@ char *strdup (const char *s)
     return d;
 }
 
-int scan_string(int c)
+int scan_string(kuma_lexer_t *lex, int c)
 {
     return 0;
 }
 
-int scan_ident(int c)
+int scan_ident(kuma_lexer_t *lex, int c)
 {
     int len = 0;
     char buf[MAX_IDENT_LEN];
 
     // TODO: Error check long idents
     buf[len++] = c;
-    while(isalnum(peek()) || peek() == '_')
+    c = NEXT;
+    while(isalnum(c) || c == '_')
     {
-        buf[len++] = peek();
-        next();
+        buf[len++] = c;
+        c = NEXT;
     }
+    PREV;
     buf[len++] = 0;
 
     // Reserved Keywords
@@ -171,47 +193,47 @@ int scan_ident(int c)
     }
 
     // Save Ident String
-    lex.tok.value.string = strdup(buf);
+    lex->tok.value.string = strdup(buf);
 
     return TOKEN(TOK_IDENTIFIER);
 }
 
-int scan_number(int c)
+int scan_number(kuma_lexer_t *lex, int c)
 {
     int v = 0;
     while(isdigit(c))
     {
         v = v * 10 + c - '0';
-        c = next();
+        c = NEXT;
     }
-    prev();
+    PREV;
 
     if(c == '.')
     {
         int e = 1;
-        c = next();
+        c = NEXT;
         while(isdigit(c))
         {
             v = v * 10 + c - '0';
             e *= 10;
-            c = next();
+            c = NEXT;
         }
-        prev();
+        PREV;
 
-        lex.tok.value.number = (double)v / (double)e;
+        lex->tok.value.number = (double)v / (double)e;
 
         return TOKEN(TOK_NUMBER);
     }
 
-    lex.tok.value.integer = v;
+    lex->tok.value.integer = v;
     return TOKEN(TOK_INTEGER);
 }
 
-int scan()
+int scan(kuma_lexer_t *lex)
 {
 scan:
     int c;
-    switch(c = next())
+    switch(c = NEXT)
     {
         case ' ':
         case '\t': goto scan;
@@ -227,57 +249,70 @@ scan:
         case '*': return TOKEN(TOK_MUL);
         case '/': return TOKEN(TOK_DIV);
         case '=':
-                  if(peek() == '=')
-                      return next(), TOKEN(TOK_CEQ);
+                  if(PEEK == '=')
+                      return NEXT, TOKEN(TOK_CEQ);
                   return TOKEN(TOK_EQUAL);
         case '!':
-                  if(peek() == '=')
-                      return next(), TOKEN(TOK_CNE);
+                  if(PEEK == '=')
+                      return NEXT, TOKEN(TOK_CNE);
                   return TOKEN(TOK_NOT);
         case '<':
-                  if(peek() == '=')
-                      return next(), TOKEN(TOK_CLE);
+                  if(PEEK == '=')
+                      return NEXT, TOKEN(TOK_CLE);
                   return TOKEN(TOK_CLT);
         case '>':
-                  if(peek() == '=')
-                      return next(), TOKEN(TOK_CGE);
+                  if(PEEK == '=')
+                      return NEXT, TOKEN(TOK_CGE);
                   return TOKEN(TOK_CGT);
         case 0x00: return TOKEN(TOK_EOF);
         case '"':
         case '\'':
-                  return scan_string(c);
+                  return scan_string(lex, c);
         default:
-                  if (isalpha(c) || c == '_') return scan_ident(c);
-                  if (isdigit(c) || c == '.') return scan_number(c);
+                  if (isalpha(c) || c == '_') return scan_ident(lex, c);
+                  if (isdigit(c) || c == '.') return scan_number(lex, c);
+                  TOKEN(TOK_ILLEGAL);
+                  ERROR("Illegal character!");
 
     }
 
     return 0;
 }
 
-void lexer()
+int kuma_lexer_init(kuma_lexer_t *lex, char *source, const char *filename)
+{
+    lex->error = NULL;
+    lex->source = source;
+    lex->filename = filename;
+    lex->lineno = 1;
+    lex->cursor = 0;
+
+    return 0;
+}
+
+void lexer(kuma_lexer_t *lex)
 {
     while(true)
     {
-        int tok = scan();
+        int tok = scan(lex);
         switch(tok)
         {
             case TOK_EOF:
                 printf("TOK_EOF\n");
                 return;
             case TOK_IDENTIFIER:
-                printf("TOK_IDENTIFIER '%s'\n", lex.tok.value.string);
+                printf("TOK_IDENTIFIER '%s'\n", lex->tok.value.string);
                 break;
             case TOK_NUMBER:
-                printf("TOK_NUMBER '%g'\n", lex.tok.value.number);
+                printf("TOK_NUMBER '%g'\n", lex->tok.value.number);
                 break;
             case TOK_INTEGER:
-                printf("TOK_INTEGER '%d'\n", lex.tok.value.integer);
+                printf("TOK_INTEGER '%d'\n", lex->tok.value.integer);
                 break;
             default:
                 if(tok != 0)
                 {
-                    printf("%s\n", lex.tok.name);
+                    printf("%s\n", lex->tok.name);
                 }
                 break;
         }
@@ -293,20 +328,14 @@ int main(int argc, char* argv[])
     }
 
     fseek(f, 0, SEEK_END);
-    lex.size = ftell(f) + 1;
+    unsigned size = ftell(f) + 1;
     fseek(f, 0, SEEK_SET);
-    lex.buf = (char*)malloc(sizeof(char) * lex.size);
-    fread(lex.buf, sizeof(char), lex.size-1, f);
-    lex.buf[lex.size-1] = 0x00;
-    lex.pc = 0;
+    char *buf = (char*)malloc(sizeof(char) * size);
+    fread(buf, sizeof(char), size-1, f);
+    buf[size-1] = 0x00;
     fclose(f);
 
-    /*for(int i = 0; i < lex.size; i++)
-    {
-        printf("0x%02hhx\n", lex.buf[i]);
-    }*/
-    //printf("%s\n", lex.buf);
-
-    //getNextToken();
-    lexer();
+    kuma_lexer_t lex;
+    kuma_lexer_init(&lex, buf, argv[1]);
+    lexer(&lex);
 }
