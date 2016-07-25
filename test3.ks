@@ -2,6 +2,7 @@ let mystring = "kjasdjkads"
 let mystring2 = mystring
 let mystring3
 let mystring4
+var foowho
 
 mystring3 = "askjfkasjf"
 mystring4 = mystring3
