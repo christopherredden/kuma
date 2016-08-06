@@ -1,85 +1,12 @@
-#include <string>
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <ctype.h>
 
-using namespace std;
+#include "lexer.h"
 
 #define MAX_IDENT_LEN 2048 * 4
-
-enum TokenType
-{
-    TOK_EOF = 258,
-
-    TOK_EXTERN,
-    TOK_RETURN,
-    TOK_BREAK,
-    TOK_CONTINUE,
-    TOK_CLASS,
-    TOK_DEF,
-    TOK_END,
-    TOK_LET,
-    TOK_VAR,
-    
-    TOK_IDENTIFIER,
-    TOK_STRING,
-    TOK_NUMBER,
-    TOK_INTEGER,
-
-    TOK_EQUAL,    
-    TOK_NOT,
-    TOK_CEQ,    
-    TOK_CNE,
-    TOK_CLT,
-    TOK_CLE,
-    TOK_CGT,
-    TOK_CGE,
-
-    TOK_COLON,
-    TOK_LPAREN,
-    TOK_RPAREN,
-    TOK_LBRACE,
-    TOK_RBRACE,
-
-    TOK_DOT,
-    TOK_COMMA,
-
-    TOK_PLUS,
-    TOK_MINUS,
-    TOK_MUL,
-    TOK_DIV,
-
-    TOK_ILLEGAL,
-};
-
-typedef struct
-{
-    int type;
-    const char* name;
-
-    union
-    {
-        char* string;
-        double number;
-        int integer;
-    } value;
-
-} kuma_token_t;
-
-typedef struct 
-{
-    const char* filename;
-    char* source;
-    off_t cursor;
-    char last;
-
-    int lineno;
-    const char* error;
-
-    kuma_token_t tok;
-
-} kuma_lexer_t;
 
 #define TOKEN(tk) (lex->tok.type = tk), (lex->tok.name = #tk), tk
 
@@ -92,59 +19,6 @@ typedef struct
 #define PEEK (lex->source[lex->cursor+1])
 
 #define CURRENT (lex->last)
-
-/*char next()
-{
-    if(lex.pc == 0)
-    {
-        lex.pc = lex.buf;
-    }
-    else if(*lex.pc != EOF)
-    {
-        lex.pc++;
-    }
-
-    return *lex.pc;
-}
-
-char prev()
-{
-    if(lex.pc == 0)
-    {
-        lex.pc = lex.buf;
-    }
-    else if(lex.pc != lex.buf)
-    {
-        lex.pc--;
-    }
-
-    return *lex.pc;
-}
-
-char peek()
-{
-    if(lex.pc == 0)
-    {
-        lex.pc = lex.buf;
-    }
-    else if(*lex.pc != EOF)
-    {
-        char* peek = lex.pc + 1;
-        return *peek;
-    }
-
-    return *lex.pc;
-}
-
-char current()
-{
-    if(lex.pc == 0)
-    {
-        lex.pc = lex.buf;
-    }
-
-    return *lex.pc;
-}*/
 
 char *strdup (const char *s) 
 {
@@ -231,8 +105,8 @@ int scan_number(kuma_lexer_t *lex, int c)
 
 int scan(kuma_lexer_t *lex)
 {
+    int c = 0;
 scan:
-    int c;
     switch(c = NEXT)
     {
         case ' ':
@@ -290,9 +164,9 @@ int kuma_lexer_init(kuma_lexer_t *lex, char *source, const char *filename)
     return 0;
 }
 
-void lexer(kuma_lexer_t *lex)
+/*void lexer(kuma_lexer_t *lex)
 {
-    while(true)
+    while(1)
     {
         int tok = scan(lex);
         switch(tok)
@@ -317,25 +191,4 @@ void lexer(kuma_lexer_t *lex)
                 break;
         }
     }
-}
-
-int main(int argc, char* argv[])
-{
-    FILE* f = fopen(argv[1], "rb");
-    if(f == 0)
-    {
-        exit(1);
-    }
-
-    fseek(f, 0, SEEK_END);
-    unsigned size = ftell(f) + 1;
-    fseek(f, 0, SEEK_SET);
-    char *buf = (char*)malloc(sizeof(char) * size);
-    fread(buf, sizeof(char), size-1, f);
-    buf[size-1] = 0x00;
-    fclose(f);
-
-    kuma_lexer_t lex;
-    kuma_lexer_init(&lex, buf, argv[1]);
-    lexer(&lex);
-}
+}*/

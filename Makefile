@@ -1,8 +1,8 @@
-CC=clang++
+CC=clang
 CFLAGS=-g -c -Wall
 LDFLAGS=
-SOURCES=lexer.cpp
-OBJECTS=$(SOURCES:.cpp=.o)
+SOURCES=lexer.c parser.c ast.c kuma.c
+OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=lexer
 
 all: $(SOURCES) $(EXECUTABLE)
@@ -10,7 +10,7 @@ all: $(SOURCES) $(EXECUTABLE)
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-.cpp.o:
+.c.o:
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
