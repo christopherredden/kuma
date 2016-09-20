@@ -1,11 +1,20 @@
 CC=clang
 CFLAGS=-g -c -Wall
 LDFLAGS=
-SOURCES=lexer.c parser.c ast.c kuma.c
+SOURCES=list.c lexer.c parser.c ast.c kuma.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=lexer
 
+TEST_SOURCES=test/list_test.c
+TEST_OBJECTS=$(TEST_SOURCES:.c=.o)
+TEST_EXECUTABLES=$(TEST_OBJECTS:.o=)
+
 all: $(SOURCES) $(EXECUTABLE)
+
+test: $(TEST_EXECUTABLES)
+
+$(TEST_EXECUTABLES): $(TEST_OBJECTS)
+	$(CC) $(LDFLAGS) $(TEST_OBJECTS) -o $@
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
@@ -16,5 +25,5 @@ $(EXECUTABLE): $(OBJECTS)
 clean:
 	rm lexer $(OBJECTS)
 
-test: all
+run: all
 	cat test3.ks | ./lexer

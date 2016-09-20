@@ -25,4 +25,6 @@ typedef struct
     char *name;
 } kuma_var_node_t;
 
+kuma_var_node_t * kuma_ast_var_node_new();
+
 #endif
