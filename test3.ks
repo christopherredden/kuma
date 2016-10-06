@@ -4,7 +4,8 @@ let mystring3
 let mystring4
 var foowho
 
-mystring3 = "askjfkasjf"
+mystring99 = "99aa+():-,=var"
+mystring3 = "askjfkasj:f"
 mystring4 = mystring3
 
 let foo:int = 6

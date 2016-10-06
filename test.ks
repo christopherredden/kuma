@@ -1,2 +1,1 @@
-println
-99,1
+var foo = "Hello World!"

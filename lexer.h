@@ -77,5 +77,6 @@ typedef struct
 } kuma_lexer_t;
 
 int kuma_lexer_init(kuma_lexer_t *lex, char *source, const char *filename);
+int kuma_lexer_dump(kuma_lexer_t *lex);
 
 #endif

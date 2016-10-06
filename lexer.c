@@ -20,6 +20,8 @@
 
 #define CURRENT (lex->last)
 
+#define LINE (lex->lineno++)
+
 char *strdup (const char *s) 
 {
     char *d = (char*)malloc (strlen (s) + 1);
@@ -30,7 +32,57 @@ char *strdup (const char *s)
 
 int scan_string(kuma_lexer_t *lex, int c)
 {
-    return 0;
+    int len = 0;
+    char buf[MAX_IDENT_LEN];
+
+    // TODO: Error check long idents
+    c = NEXT;
+    while(c != '"' && c != '\'')
+    {
+        if(c == '\\')
+        {
+            c = NEXT;
+            if(c == 'n')
+            {
+                buf[len++] = '\n';
+            }
+            else if(c == 't')
+            {
+                buf[len++] = '\t';
+            }
+            else if(c == '\\')
+            {
+                buf[len++] = '\\';
+            }
+            else if(c == '\"')
+            {
+                buf[len++] = '\"';
+            }
+            else
+            {
+                return ERROR("Illegal escape code!");
+            }
+
+            c = NEXT;
+        }
+        else if(c == '\n')
+        {
+            LINE;
+            return ERROR("New Line in string literal!");
+        }
+        else
+        {
+            buf[len++] = c;
+            c = NEXT;
+        }
+    }
+    //PREV;
+    buf[len++] = 0;
+
+    // Save Ident String
+    lex->tok.value.string = strdup(buf);
+
+    return TOKEN(TOK_STRING);
 }
 
 int scan_ident(kuma_lexer_t *lex, int c)
@@ -80,7 +132,6 @@ int scan_number(kuma_lexer_t *lex, int c)
         v = v * 10 + c - '0';
         c = NEXT;
     }
-    PREV;
 
     if(c == '.')
     {
@@ -99,6 +150,8 @@ int scan_number(kuma_lexer_t *lex, int c)
         return TOKEN(TOK_NUMBER);
     }
 
+    PREV;
+
     lex->tok.value.integer = v;
     return TOKEN(TOK_INTEGER);
 }
@@ -111,6 +164,7 @@ scan:
     {
         case ' ':
         case '\t': goto scan;
+        case '\n': LINE; goto scan;
         case ':': return TOKEN(TOK_COLON);
         case '(': return TOKEN(TOK_LPAREN);
         case ')': return TOKEN(TOK_RPAREN);
@@ -164,7 +218,7 @@ int kuma_lexer_init(kuma_lexer_t *lex, char *source, const char *filename)
     return 0;
 }
 
-/*void lexer(kuma_lexer_t *lex)
+int kuma_lexer_dump(kuma_lexer_t *lex)
 {
     while(1)
     {
@@ -173,22 +227,32 @@ int kuma_lexer_init(kuma_lexer_t *lex, char *source, const char *filename)
         {
             case TOK_EOF:
                 printf("TOK_EOF\n");
-                return;
+                return 0;
             case TOK_IDENTIFIER:
-                printf("TOK_IDENTIFIER '%s'\n", lex->tok.value.string);
+                printf("%d TOK_IDENTIFIER '%s'\n", lex->lineno, lex->tok.value.string);
+                break;
+            case TOK_STRING:
+                printf("%d TOK_STRING '%s'\n", lex->lineno, lex->tok.value.string);
                 break;
             case TOK_NUMBER:
-                printf("TOK_NUMBER '%g'\n", lex->tok.value.number);
+                printf("%d TOK_NUMBER '%g'\n", lex->lineno, lex->tok.value.number);
                 break;
             case TOK_INTEGER:
-                printf("TOK_INTEGER '%d'\n", lex->tok.value.integer);
+                printf("%d TOK_INTEGER '%d'\n", lex->lineno, lex->tok.value.integer);
+                break;
+            case TOK_ILLEGAL:
+                printf("%d %s\n", lex->lineno, lex->error);
                 break;
             default:
                 if(tok != 0)
                 {
-                    printf("%s\n", lex->tok.name);
+                    printf("%d %s\n", lex->lineno, lex->tok.name);
                 }
                 break;
         }
     }
-}*/
+
+    printf("Error: No EOF!\n");
+
+    return 1;
+}

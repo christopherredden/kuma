@@ -23,5 +23,6 @@ int main(int argc, char* argv[])
 
     kuma_lexer_t lex;
     kuma_lexer_init(&lex, buf, argv[1]);
+    kuma_lexer_dump(&lex);
     //lexer(&lex);
 }
