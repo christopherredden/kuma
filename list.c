@@ -1,20 +1,20 @@
 #include "list.h"
 
-struct kuma_node_s
+struct klist_node_s
 {
     void * data;
-    kuma_list_node_t *next;
-    kuma_list_node_t *prev;
+    klist_node *next;
+    klist_node *prev;
 };
 
-struct kuma_list_s
+struct klist_s
 {
     size_t size;
-    kuma_list_node_t *head;
-    kuma_list_node_t *tail;
+    klist_node *head;
+    klist_node *tail;
 };
 
-static void link_behind(kuma_list_node_t *const base, kuma_list_node_t *ins)
+static void link_behind(klist_node *const base, klist_node *ins)
 {
     if (ins->next != NULL)
         ins->next->prev = ins->prev;
@@ -37,7 +37,7 @@ static void link_behind(kuma_list_node_t *const base, kuma_list_node_t *ins)
     }
 }
 
-static void link_after(kuma_list_node_t *base, kuma_list_node_t *ins)
+static void link_after(klist_node *base, klist_node *ins)
 {
     if (ins->next)
         ins->next->prev = ins->prev;
@@ -60,7 +60,7 @@ static void link_after(kuma_list_node_t *base, kuma_list_node_t *ins)
     }
 }
 
-static void swap_adjacent(kuma_list_node_t *n1, kuma_list_node_t *n2)
+static void swap_adjacent(klist_node *n1, klist_node *n2)
 {
     if (n1->next == n2) {
         if (n2->next)
@@ -95,7 +95,7 @@ static void swap_adjacent(kuma_list_node_t *n1, kuma_list_node_t *n2)
     }
 }
 
-static void swap(kuma_list_node_t *n1, kuma_list_node_t *n2)
+static void swap(klist_node *n1, klist_node *n2)
 {
     if (n1->next == n2 || n2->next == n1) 
     {
@@ -103,10 +103,10 @@ static void swap(kuma_list_node_t *n1, kuma_list_node_t *n2)
         return;
     }
 
-    kuma_list_node_t *n1_left  = n1->prev;
-    kuma_list_node_t *n1_right = n1->next;
-    kuma_list_node_t *n2_left  = n2->prev;
-    kuma_list_node_t *n2_right = n2->next;
+    klist_node *n1_left  = n1->prev;
+    klist_node *n1_right = n1->next;
+    klist_node *n2_left  = n2->prev;
+    klist_node *n2_right = n2->next;
 
     if (n1_left)
         n1_left->next = n2;
@@ -129,7 +129,7 @@ static void swap(kuma_list_node_t *n1, kuma_list_node_t *n2)
     n1->next = n2_right;
 }
 
-static void *unlink(kuma_list_t *list, kuma_list_node_t *node)
+static void *unlink(klist *list, klist_node *node)
 {
     void *data = node->data;
 
@@ -151,16 +151,16 @@ static void *unlink(kuma_list_t *list, kuma_list_node_t *node)
     return data;
 }
 
-static int unlink_all(kuma_list_t *list, int freed)
+static int unlink_all(klist *list, int freed)
 {
     if (list->size == 0)
         return 0;
 
-    kuma_list_node_t *node = list->head;
+    klist_node *node = list->head;
 
     while (node) 
     {
-        kuma_list_node_t *tmp = node->next;
+        klist_node *tmp = node->next;
 
         if (freed)
         {
@@ -174,9 +174,9 @@ static int unlink_all(kuma_list_t *list, int freed)
     return 1;
 }
 
-static kuma_list_node_t * get_node(kuma_list_t *list, void *element)
+static klist_node * get_node(klist *list, void *element)
 {
-    kuma_list_node_t *node = list->head;
+    klist_node *node = list->head;
     while (node) 
     {
         if (node->data == element)
@@ -189,10 +189,10 @@ static kuma_list_node_t * get_node(kuma_list_t *list, void *element)
     return NULL;
 }
 
-static kuma_list_node_t * get_node_at(kuma_list_t *list, size_t index)
+static klist_node * get_node_at(klist *list, size_t index)
 {
     size_t i;
-    kuma_list_node_t *node = NULL;
+    klist_node *node = NULL;
 
     if (index < list->size / 2) 
     {
@@ -214,33 +214,33 @@ static kuma_list_node_t * get_node_at(kuma_list_t *list, size_t index)
     return node;
 }
 
-kuma_list_t * kuma_list_new()
+klist * klist_new()
 {
-    kuma_list_t *list = calloc(1, sizeof(kuma_list_t));
+    klist *list = calloc(1, sizeof(klist));
 
     return list;
 }
 
-void kuma_list_destroy(kuma_list_t *list)
+void klist_destroy(klist *list)
 {
     if(list->size > 0)
     {
-        kuma_list_remove_all(list);
+        klist_remove_all(list);
     }
 
     free(list);
 }
 
-void kuma_list_add(kuma_list_t *list, void *element)
+void klist_add(klist *list, void *element)
 {
-    kuma_list_add_last(list, element);
+    klist_add_last(list, element);
 }
 
-void kuma_list_add_at(kuma_list_t *list, void *element, size_t index)
+void klist_add_at(klist *list, void *element, size_t index)
 {
-    kuma_list_node_t *base = kuma_list_node_at(list, index);
+    klist_node *base = klist_node_at(list, index);
 
-    kuma_list_node_t *node = calloc(1, sizeof(kuma_list_node_t));
+    klist_node *node = calloc(1, sizeof(klist_node));
 
     node->data = element;
 
@@ -254,9 +254,11 @@ void kuma_list_add_at(kuma_list_t *list, void *element, size_t index)
     list->size++;
 }
 
-void kuma_list_add_first(kuma_list_t *list, void *element)
+void klist_add_first(klist *list, void *element)
 {
-    kuma_list_node_t *node = calloc(1, sizeof(kuma_list_node_t));
+    klist_node *node = calloc(1, sizeof(klist_node));
+
+    node->data = element;
 
     if(list->size == 0)
     {
@@ -273,9 +275,9 @@ void kuma_list_add_first(kuma_list_t *list, void *element)
     list->size++;
 }
 
-void kuma_list_add_last(kuma_list_t *list, void *element)
+void klist_add_last(klist *list, void *element)
 {
-    kuma_list_node_t *node = calloc(1, sizeof(kuma_list_node_t));
+    klist_node *node = calloc(1, sizeof(klist_node));
 
     node->data = element;
 
@@ -294,9 +296,9 @@ void kuma_list_add_last(kuma_list_t *list, void *element)
     list->size++;
 }
 
-void * kuma_list_remove(kuma_list_t *list, void *element)
+void * klist_remove(klist *list, void *element)
 {
-    kuma_list_node_t *node = get_node(list, element);
+    klist_node *node = get_node(list, element);
 
     void *data = node->data;
     unlink(list, node);
@@ -304,9 +306,9 @@ void * kuma_list_remove(kuma_list_t *list, void *element)
     return data;
 }
 
-void * kuma_list_remove_at(kuma_list_t *list, void *element, size_t index)
+void * klist_remove_at(klist *list, void *element, size_t index)
 {
-    kuma_list_node_t *node = get_node_at(list, index);
+    klist_node *node = get_node_at(list, index);
 
     void *data = node->data;
     unlink(list, node);
@@ -314,21 +316,21 @@ void * kuma_list_remove_at(kuma_list_t *list, void *element, size_t index)
     return data;
 }
 
-void * kuma_list_remove_first(kuma_list_t *list)
+void * klist_remove_first(klist *list)
 {
     void *element = unlink(list, list->head);
 
     return element;
 }
 
-void * kuma_list_remove_last(kuma_list_t *list)
+void * klist_remove_last(klist *list)
 {
     void *element = unlink(list, list->tail);
 
     return element;
 }
 
-void kuma_list_remove_all(kuma_list_t *list)
+void klist_remove_all(klist *list)
 {
     int unlinked = unlink_all(list, 0);
 
@@ -339,7 +341,7 @@ void kuma_list_remove_all(kuma_list_t *list)
     }
 }
 
-void kuma_list_remove_all_free(kuma_list_t *list)
+void klist_remove_all_free(klist *list)
 {
     int unlinked = unlink_all(list, 1);
 
@@ -350,14 +352,14 @@ void kuma_list_remove_all_free(kuma_list_t *list)
     }
 }
 
-void * kuma_list_get_at(kuma_list_t *list, size_t index)
+void * klist_get_at(klist *list, size_t index)
 {
-    kuma_list_node_t *node = get_node_at(list, index);
+    klist_node *node = get_node_at(list, index);
 
     return node->data;
 }
 
-void * kuma_list_get_first(kuma_list_t *list)
+void * klist_get_first(klist *list)
 {
     if(list->size == 0)
     {
@@ -367,7 +369,7 @@ void * kuma_list_get_first(kuma_list_t *list)
     return list->head->data;
 }
 
-void * kuma_list_get_last(kuma_list_t *list)
+void * klist_get_last(klist *list)
 {
     if(list->size == 0)
     {
@@ -377,37 +379,37 @@ void * kuma_list_get_last(kuma_list_t *list)
     return list->tail->data;
 }
 
-void * kuma_list_get_node(kuma_list_t *list, kuma_list_node_t *node)
+void * klist_get_node(klist *list, klist_node *node)
 {
     return node->data;
 }
 
-size_t kuma_list_size(kuma_list_t *list)
+size_t klist_size(klist *list)
 {
     return list->size;
 }
 
-kuma_list_node_t * kuma_list_node_at(kuma_list_t *list, size_t index)
+klist_node * klist_node_at(klist *list, size_t index)
 {
     return get_node_at(list, index);
 }
 
-kuma_list_node_t * kuma_list_node_first(kuma_list_t *list)
+klist_node * klist_node_first(klist *list)
 {
     return list->head;
 }
 
-kuma_list_node_t * kuma_list_node_last(kuma_list_t *list)
+klist_node * klist_node_last(klist *list)
 {
     return list->tail;
 }
 
-kuma_list_node_t * kuma_list_node_next(kuma_list_node_t *node)
+klist_node * klist_node_next(klist_node *node)
 {
     return node->next;
 }
 
-kuma_list_node_t * kuma_list_node_prev(kuma_list_node_t *node)
+klist_node * klist_node_prev(klist_node *node)
 {
     return node->prev;
 }

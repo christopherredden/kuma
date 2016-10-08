@@ -1,11 +1,11 @@
 CC=clang
-CFLAGS=-g -c -Wall
+CFLAGS=-g -c -Wall -I./
 LDFLAGS=
-SOURCES=list.c lexer.c parser.c ast.c kuma.c
+SOURCES=table.c list.c lexer.c parser.c ast.c kuma.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=lexer
 
-TEST_SOURCES=test/list_test.c
+TEST_SOURCES=test/test.c list.c
 TEST_OBJECTS=$(TEST_SOURCES:.c=.o)
 TEST_EXECUTABLES=$(TEST_OBJECTS:.o=)
 
