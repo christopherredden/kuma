@@ -129,7 +129,7 @@ static void swap(klist_node *n1, klist_node *n2)
     n1->next = n2_right;
 }
 
-static void *unlink(klist *list, klist_node *node)
+static void *unlink_node(klist *list, klist_node *node)
 {
     void *data = node->data;
 
@@ -167,7 +167,7 @@ static int unlink_all(klist *list, int freed)
             free(node->data);
         }
 
-        unlink(list, node);
+        unlink_node(list, node);
         node = tmp;
     }
 
@@ -301,7 +301,7 @@ void * klist_remove(klist *list, void *element)
     klist_node *node = get_node(list, element);
 
     void *data = node->data;
-    unlink(list, node);
+    unlink_node(list, node);
 
     return data;
 }
@@ -311,21 +311,21 @@ void * klist_remove_at(klist *list, void *element, size_t index)
     klist_node *node = get_node_at(list, index);
 
     void *data = node->data;
-    unlink(list, node);
+    unlink_node(list, node);
 
     return data;
 }
 
 void * klist_remove_first(klist *list)
 {
-    void *element = unlink(list, list->head);
+    void *element = unlink_node(list, list->head);
 
     return element;
 }
 
 void * klist_remove_last(klist *list)
 {
-    void *element = unlink(list, list->tail);
+    void *element = unlink_node(list, list->tail);
 
     return element;
 }
