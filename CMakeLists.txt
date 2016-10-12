@@ -23,5 +23,6 @@ set(TEST_FILES
     test/test.c
     test/test.h)
 
-add_executable(kuma ${SOURCE_FILES})
+add_library(kuma ${SOURCE_FILES})
 add_executable(kuma-test ${TEST_FILES})
+target_link_libraries (kuma-test LINK_PUBLIC kuma)

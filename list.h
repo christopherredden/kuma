@@ -7,49 +7,80 @@
 typedef struct klist_s klist;
 typedef struct klist_node_s klist_node;
 
+struct klist_node_s
+{
+    void * data;
+    klist_node *next;
+    klist_node *prev;
+};
+
+struct klist_s
+{
+    size_t size;
+    klist_node *head;
+    klist_node *tail;
+};
+
 klist * klist_new();
 void klist_destroy(klist *list);
 
-void klist_add(klist *list, void *element);
-void klist_add_at(klist *list, void *element, size_t index);
-void klist_add_first(klist *list, void *element);
-void klist_add_last(klist *list, void *element);
+klist_node * klist_add_node_at(klist *list, size_t index);
+klist_node * klist_add_node_first(klist *list);
+klist_node * klist_add_node_last(klist *list);
 
-void * klist_remove(klist *list, void *element);
-void * klist_remove_at(klist *list, void *element, size_t index);
-void * klist_remove_first(klist *list);
-void * klist_remove_last(klist *list);
+#define klist_add(list, v) \
+    { klist_node *node = klist_add_node_last(list); \
+    node->data = (void*)v; }
+
+#define klist_add_at(list, v, index) \
+    { klist_node *node = klist_add_node_at(list, index); \
+    node->data = (void*)v; }
+
+#define klist_add_first(list, v) \
+    { klist_node *node = klist_add_node_first(list); \
+    node->data = (void*)v; }
+
+#define klist_add_last(list, v) \
+    { klist_node *node = klist_add_node_last(list); \
+    node->data = (void*)v; }
+
+void * klist_remove_node(klist *list, klist_node *node);
+void * klist_remove_node_at(klist *list, size_t index);
+void * klist_remove_node_first(klist *list);
+void * klist_remove_node_last(klist *list);
+
+#define klist_remove(list, v) \
+    { klist_node *node = klist_find_node(list, (void*)v); \
+    klist_remove_node(list, node);}
+
+#define klist_remove_at(list, index) \
+    klist_remove_node_at(list, index);
+
+#define klist_remove_first(list) \
+    klist_remove_node_first(list);
+
+#define klist_remove_last(list) \
+    klist_remove_node_last(list);
 
 void klist_remove_all(klist *list);
 void klist_remove_all_free(klist *list);
 
-void * klist_get_at(klist *list, size_t index);
-void * klist_get_first(klist *list);
-void * klist_get_last(klist *list);
-void * klist_get_node(klist *list, klist_node *node);
+#define klist_get_at(t, list, index) \
+    (t)(klist_get_node_at(list, index)->data)
+
+#define klist_get_first(t, list) \
+    (t)(klist_get_node_first(list)->data)
+
+#define klist_get_last(t, list) \
+    (t)(klist_get_node_last(list)->data)
 
 size_t klist_size(klist *list);
 
-klist_node * klist_node_at(klist *list, size_t index);
-klist_node * klist_node_first(klist *list);
-klist_node * klist_node_last(klist *list);
-klist_node * klist_node_next(klist_node *node);
-klist_node * klist_node_prev(klist_node *node);
-
-#define INLINE static inline
-
-#define KUMA_LIST_INSTANCE(Name, T, FName) \
-    typedef klist Name; \
-    INLINE Name* FName##_create() { return NULL; } \
-    INLINE Name* FName##_destroy(Name *a) { klist_free(a); return NULL; } \
-    INLINE Name* FName##_append(Name* a, T b) { return klist_append(a, (void *)b); } \
-    INLINE Name* FName##_prepend(Name* a, T b) { return klist_prepend(a, (void *)b); } \
-    INLINE Name* FName##_first(Name* a) { return klist_first(a); } \
-    INLINE Name* FName##_last(Name* a) { return klist_last(a); } \
-    INLINE Name* FName##_next(Name* a) { return klist_next(a); } \
-    INLINE Name* FName##_prev(Name* a) { return klist_previous(a); } \
-    INLINE int   FName##_length(Name* a) { return klist_length(a); } \
-    INLINE T     FName##_get(Name* a, int b) { return (T)klist_nth_data(a, b); } \
-    INLINE T     FName##_data(Name* a) { return (T)(a->data); }
+klist_node * klist_get_node_at(klist *list, size_t index);
+klist_node * klist_get_node_first(klist *list);
+klist_node * klist_get_node_last(klist *list);
+klist_node * klist_get_node_next(klist_node *node);
+klist_node * klist_get_node_prev(klist_node *node);
+klist_node * klist_find_node(klist *list, void *element);
 
 #endif
