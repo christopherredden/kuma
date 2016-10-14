@@ -8,19 +8,24 @@ DEFINE_TEST(TEST_TABLE_ITER)
     ktable_set(table, "key1", 1);
     ktable_set(table, "key2", 2);
     ktable_set(table, "key3", 3);
-    CHECK_TEST(ktable_size(table) == 3);
+    ktable_set(table, "foo1", 4);
+    ktable_set(table, "bar1", 5);
+    ktable_set(table, "kuma", 6);
+    CHECK_TEST(ktable_size(table) == 6);
 
     ktable_iter iter;
     ktable_iter_init(table, &iter);
 
     int val = 1;
+    int total = 0;
     while(ktable_iter_next(&iter))
     {
-        CHECK_TEST(ktable_iter_value(&iter) == val);
+        total += ktable_iter_value(&iter);
         val++;
     }
 
-    CHECK_TEST(val == 4);
+    CHECK_TEST(val == 7);
+    CHECK_TEST(total == 21);
 
     ktable_destroy(table);
 
