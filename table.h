@@ -11,6 +11,7 @@
 typedef struct ktable_s ktable;
 typedef struct ktable_pair_s ktable_pair;
 typedef struct ktable_bucket_s ktable_bucket;
+typedef struct ktable_iter_s ktable_iter;
 
 struct ktable_pair_s
 {
@@ -27,6 +28,13 @@ struct ktable_bucket_s
     size_t size;
     ktable_pair *head;
     ktable_pair *tail;
+};
+
+struct ktable_iter_s
+{
+    ktable *table;
+    size_t bucket;
+    ktable_pair *pair;
 };
 
 struct ktable_s
@@ -232,6 +240,66 @@ int ktable_exists(ktable *table, char *key)
     }
 
     return 1;
+}
+
+void ktable_iter_init(ktable *table, ktable_iter *iter)
+{
+    iter->table = table;
+    iter->bucket = 0;
+    iter->pair = NULL;
+}
+
+size_t ktable_size(ktable *table)
+{
+    size_t size = 0;
+
+    for(size_t i = 0; i < table->size; i++)
+    {
+        ktable_bucket *bucket = &(table->buckets[i]);
+
+        size += bucket->size;
+    }
+
+    return size;
+}
+
+const char * ktable_iter_key(ktable_iter *iter)
+{
+    return iter->pair->key;
+}
+
+void * ktable_iter_value(ktable_iter *iter)
+{
+    return iter->pair->data;
+}
+
+int ktable_iter_next(ktable_iter *iter)
+{
+    if(iter->pair == NULL)
+    {
+        while(iter->bucket < iter->table->size)
+        {
+            if(iter->table->buckets[iter->bucket].size > 0)
+            {
+                iter->pair = iter->table->buckets[iter->bucket].head;
+                return 1;
+            }
+
+            iter->bucket++;
+        }
+    }
+    else
+    {
+        iter->pair = iter->pair->next;
+
+        if(iter->pair == NULL)
+        {
+            iter->bucket++;
+            return ktable_iter_next(iter);
+        }
+    }
+
+    return 0;
 }
 
 #endif

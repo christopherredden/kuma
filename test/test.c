@@ -4,6 +4,7 @@
 
 #include "test.h"
 #include "list_test.h"
+#include "table_test.h"
 
 int main()
 {
@@ -16,4 +17,7 @@ int main()
     RUN_TEST(TEST_LIST_REMOVE_AT);
     RUN_TEST(TEST_LIST_REMOVE_FIRST);
     RUN_TEST(TEST_LIST_REMOVE_LAST);
+
+    RUN_TEST(TEST_TABLE_ITER);
+    RUN_TEST(TEST_TABLE_SETGET);
 }
