@@ -157,7 +157,7 @@ int scan_number(kuma_lexer_t *lex, int c)
     return TOKEN(TOK_INTEGER);
 }
 
-int scan(kuma_lexer_t *lex)
+int kuma_lexer_scan(kuma_lexer_t *lex)
 {
     int c = 0;
 scan:
@@ -165,7 +165,7 @@ scan:
     {
         case ' ':
         case '\t': goto scan;
-        case '\n': LINE; goto scan;
+        case '\n': LINE; return TOKEN(TOK_NEWLINE);
         case ':': return TOKEN(TOK_COLON);
         case '(': return TOKEN(TOK_LPAREN);
         case ')': return TOKEN(TOK_RPAREN);
@@ -223,7 +223,7 @@ int kuma_lexer_dump(kuma_lexer_t *lex)
 {
     while(1)
     {
-        int tok = scan(lex);
+        int tok = kuma_lexer_scan(lex);
         switch(tok)
         {
             case TOK_EOF:

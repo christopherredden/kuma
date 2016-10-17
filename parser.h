@@ -2,6 +2,7 @@
 #define KUMA_PARSER_H
 
 #include "lexer.h"
+#include "ast.h"
 
 typedef struct 
 {
@@ -14,6 +15,6 @@ typedef struct
 
 int kuma_parser_init(kuma_parser_t *parser, kuma_lexer_t *lex);
 
-int kuma_parse(kuma_parser_t *parser);
+kuma_block_node * kuma_parser_parse(kuma_parser_t *parser);
 
 #endif

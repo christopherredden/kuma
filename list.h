@@ -1,5 +1,5 @@
-#ifndef KUMA_LEXER_H
-#define KUMA_LEXER_H
+#ifndef KUMA_LIST_H
+#define KUMA_LIST_H
 
 #include "stdlib.h"
 #include "stdio.h"
@@ -28,21 +28,13 @@ klist_node * klist_add_node_at(klist *list, size_t index);
 klist_node * klist_add_node_first(klist *list);
 klist_node * klist_add_node_last(klist *list);
 
-#define klist_add(list, v) \
-    { klist_node *node = klist_add_node_last(list); \
-    node->data = (void*)v; }
+#define klist_add(list, v) klist_add_node_last(list)->data = (void*)v
 
-#define klist_add_at(list, v, index) \
-    { klist_node *node = klist_add_node_at(list, index); \
-    node->data = (void*)v; }
+#define klist_add_at(list, v, index) klist_add_node_at(list, index)->data = (void*)v
 
-#define klist_add_first(list, v) \
-    { klist_node *node = klist_add_node_first(list); \
-    node->data = (void*)v; }
+#define klist_add_first(list, v) klist_add_node_first(list)->data = (void*)v
 
-#define klist_add_last(list, v) \
-    { klist_node *node = klist_add_node_last(list); \
-    node->data = (void*)v; }
+#define klist_add_last(list, v) klist_add_node_last(list)->data = (void*)v
 
 void * klist_remove_node(klist *list, klist_node *node);
 void * klist_remove_node_at(klist *list, size_t index);
