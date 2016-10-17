@@ -6,14 +6,14 @@
       <sourceFolder url="file://$MODULE_DIR$/test/test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/list_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/lexer.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/list.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/parser.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/lexer.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/list.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/table.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/kuma.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ast.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/table.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lexer.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/kumac.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/list.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/list.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ast.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/table.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ast.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/parser.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />

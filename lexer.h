@@ -45,6 +45,8 @@ enum TokenType
     TOK_MUL,
     TOK_DIV,
 
+    TOK_NEWLINE,
+
     TOK_ILLEGAL,
 };
 
@@ -77,6 +79,7 @@ typedef struct
 } kuma_lexer_t;
 
 int kuma_lexer_init(kuma_lexer_t *lex, char *source, const char *filename);
+int kuma_lexer_scan(kuma_lexer_t *lex);
 int kuma_lexer_dump(kuma_lexer_t *lex);
 
 #endif

@@ -8,7 +8,6 @@ include_directories(./)
 set(SOURCE_FILES
     ast.c
     ast.h
-    kuma.c
     lexer.c
     lexer.h
     list.c
@@ -18,6 +17,9 @@ set(SOURCE_FILES
     table.c
     table.h)
 
+set(KUMAC_SOURCE_FILES
+    kumac.c)
+
 set(TEST_FILES
     test/list_test.h
     test/test.c
@@ -25,4 +27,6 @@ set(TEST_FILES
 
 add_library(kuma ${SOURCE_FILES})
 add_executable(kuma-test ${TEST_FILES})
+add_executable(kumac ${KUMAC_SOURCE_FILES})
+target_link_libraries (kumac LINK_PUBLIC kuma)
 target_link_libraries (kuma-test LINK_PUBLIC kuma)
