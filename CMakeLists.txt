@@ -15,7 +15,13 @@ set(SOURCE_FILES
     parser.c
     parser.h
     table.c
-    table.h)
+    table.h
+    vm.h
+    vm.c
+    opcodes.c
+    opcodes.h
+    gen.c
+    gen.h)
 
 set(KUMAC_SOURCE_FILES
     kumac.c)

@@ -2,21 +2,27 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/gen.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/table.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ast.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/table.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/kumac.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/list_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/lexer.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/parser.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/table.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/lexer.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/kumac.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/list.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/opcodes.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/list.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ast.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/table.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/ast.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/gen.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/opcodes.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lexer.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/parser.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vm.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lexer.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/parser.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vm.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ast.c" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
@@ -129,6 +135,7 @@
           <root url="file:///System/Library/Frameworks/ImageCaptureCore.framework/Headers" />
           <root url="file:///System/Library/Frameworks/SpriteKit.framework/Headers" />
           <root url="file:///System/Library/Frameworks/Automator.framework/Headers" />
+          <root url="file:///System/Library/Frameworks/MediaPlayer.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreData.framework/Headers" />
           <root url="file:///System/Library/Frameworks/Social.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreText.framework/Headers" />
@@ -306,6 +313,7 @@
           <root url="file:///System/Library/Frameworks/ImageCaptureCore.framework/Headers" />
           <root url="file:///System/Library/Frameworks/SpriteKit.framework/Headers" />
           <root url="file:///System/Library/Frameworks/Automator.framework/Headers" />
+          <root url="file:///System/Library/Frameworks/MediaPlayer.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreData.framework/Headers" />
           <root url="file:///System/Library/Frameworks/Social.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreText.framework/Headers" />

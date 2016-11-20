@@ -1,4 +1,3 @@
-var foo:int32 = 1
-var bar:float32 = 1
-var foobar:int8 = 1
-var kumavar:string = 1
+let foo:int = 245
+let bar:int = 999
+var foobar:int = foo + bar

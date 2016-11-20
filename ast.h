@@ -5,10 +5,12 @@
 
 enum NodeType
 {
-    BLOCK = 0,
-    VAR_DECL,
-    LET_DECL,
-    IDENTIFIER,
+    NODE_BLOCK = 0,
+    NODE_VAR_DECL,
+    NODE_LET_DECL,
+    NODE_IDENTIFIER,
+    NODE_INTEGER,
+    NODE_BINOP,
 };
 
 typedef struct 
@@ -16,6 +18,12 @@ typedef struct
     int type;
     int lineno;
 } kuma_node;
+
+typedef struct
+{
+    kuma_node base;
+    int value;
+} kuma_integer_node;
 
 typedef struct
 {
@@ -44,6 +52,18 @@ typedef struct
     kuma_node *type;
     kuma_node *expr;
 } kuma_let_node;
+
+typedef struct
+{
+    kuma_node base;
+    int binop;
+    kuma_node *lhs;
+    kuma_node *rhs;
+} kuma_binop_node;
+
+kuma_binop_node * kuma_binop_node_new(int lineno, int binop, kuma_node *lhs, kuma_node *rhs);
+
+kuma_integer_node * kuma_integer_node_new(int lineno, int value);
 
 kuma_ident_node * kuma_ident_node_new(int lineno, char *name);
 
