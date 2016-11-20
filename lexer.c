@@ -22,13 +22,13 @@
 
 #define LINE (lex->lineno++)
 
-char *strdup (const char *s) 
+/*char *strdup (const char *s)
 {
     char *d = (char*)malloc (strlen (s) + 1);
     if (d == NULL) return NULL;
     strcpy (d,s);
     return d;
-}
+}*/
 
 int scan_string(kuma_lexer_t *lex, int c)
 {
@@ -111,6 +111,7 @@ int scan_ident(kuma_lexer_t *lex, int c)
             if(strcmp("var", buf) == 0) return TOKEN(TOK_VAR);
         case 5:
             if(strcmp("class", buf) == 0) return TOKEN(TOK_CLASS);
+            if(strcmp("break", buf) == 0) return TOKEN(TOK_BREAK);
         case 6:
             if(strcmp("extern", buf) == 0) return TOKEN(TOK_EXTERN);
             if(strcmp("return", buf) == 0) return TOKEN(TOK_RETURN);
