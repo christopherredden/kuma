@@ -13,6 +13,8 @@
 
 
 kuma_node * parse_expr(kuma_parser_t *parser);
+kuma_node * parse_block(kuma_parser_t *parser);
+kuma_node * parse_if_expr(kuma_parser_t *parser);
 
 int kuma_parser_init(kuma_parser_t *parser, kuma_lexer_t *lex)
 {
@@ -45,15 +47,26 @@ kuma_node * parse_integer(kuma_parser_t *parser)
     return node;
 }
 
+kuma_node * parse_assignment_expr(kuma_parser_t *parser, char *ident)
+{
+    kuma_node *expr = parse_expr(parser);
+    kuma_node *node = (kuma_node *)kuma_assignment_node_new(LINENO, ident, expr);
+    return node;
+}
+
 kuma_node * parse_ident_expr(kuma_parser_t *parser)
 {
-    if(!IS(TOK_IDENTIFIER))
-        return NULL;
+    char *ident = parser->tok->value.string;
+    NEXT; //Consume Ident
+
+    // Is not comparison
+
+    if(ACCEPT(TOK_EQUAL))
+    {
+        return parse_assignment_expr(parser, ident);
+    }
 
     kuma_node *node = (kuma_node *)kuma_ident_node_new(LINENO, parser->tok->value.string);
-
-    // Consume Identifier
-    NEXT;
 
     return node;
 }
@@ -132,6 +145,9 @@ kuma_node * parse_primary_expr(kuma_parser_t *parser)
     if(IS(TOK_LET))
         return parse_let_expr(parser);
 
+    if(IS(TOK_IF))
+        return parse_if_expr(parser);
+
     return NULL;
 }
 
@@ -182,7 +198,20 @@ kuma_node * parse_expr(kuma_parser_t *parser)
     //NEXT;
 }
 
+kuma_node * parse_if_expr(kuma_parser_t *parser)
+{
+    ACCEPT(TOK_IF);
+    kuma_node *cond = parse_expr(parser);
+    ACCEPT(TOK_THEN);
+    kuma_node *ifblock = parse_block(parser);
+    ACCEPT(TOK_ELSE);
+    kuma_node *elseblock = parse_block(parser);
+    ACCEPT(TOK_END);
 
+    kuma_node *node = (kuma_node *)kuma_if_node_new(LINENO, cond, ifblock, elseblock);
+
+    return node;
+}
 
 kuma_node * parse_stmnt(kuma_parser_t *parser)
 {
@@ -195,31 +224,41 @@ kuma_node * parse_stmnt(kuma_parser_t *parser)
     return parse_expr(parser);
 }
 
-kuma_block_node * parse_program(kuma_parser_t *parser)
+kuma_node * parse_block(kuma_parser_t *parser)
 {
-    kuma_node *node;
     kuma_block_node *block = kuma_block_node_new(LINENO);
 
-    NEXT;
-
-    while (!IS(TOK_EOF))
+    while (!IS(TOK_END) && !IS(TOK_ELSE))
     {
-        node = parse_stmnt(parser);
+        kuma_node *node = parse_stmnt(parser);
         if (node)
         {
-            ACCEPT(TOK_NEWLINE);
             klist_add(block->stmts, node);
         }
-        else
-        {
-            return NULL;
-        }
+
+        ACCEPT(TOK_NEWLINE);
     }
 
-    return block;
+    return (kuma_node *)block;
 }
 
 kuma_block_node * kuma_parser_parse(kuma_parser_t *parser)
 {
-    return parse_program(parser);
+    // Start Lexer
+    NEXT;
+
+    kuma_block_node *block = kuma_block_node_new(LINENO);
+
+    while (!IS(TOK_EOF))
+    {
+        kuma_node *node = parse_stmnt(parser);
+        if (node)
+        {
+            klist_add(block->stmts, node);
+        }
+
+        ACCEPT(TOK_NEWLINE);
+    }
+
+    return block;
 }

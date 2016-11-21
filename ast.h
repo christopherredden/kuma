@@ -11,6 +11,8 @@ enum NodeType
     NODE_IDENTIFIER,
     NODE_INTEGER,
     NODE_BINOP,
+    NODE_IF,
+    NODE_ASSIGNMENT,
 };
 
 typedef struct 
@@ -60,6 +62,27 @@ typedef struct
     kuma_node *lhs;
     kuma_node *rhs;
 } kuma_binop_node;
+
+typedef struct
+{
+    kuma_node base;
+
+    kuma_node *cond;
+    kuma_node *ifblock;
+    kuma_node *elseblock;
+} kuma_if_node;
+
+typedef struct
+{
+    kuma_node base;
+
+    char *ident;
+    kuma_node *expr;
+} kuma_assignment_node;
+
+kuma_assignment_node * kuma_assignment_node_new(int lineno, char *ident, kuma_node *expr);
+
+kuma_if_node * kuma_if_node_new(int lineno, kuma_node *cond, kuma_node *ifblock, kuma_node *elseblock);
 
 kuma_binop_node * kuma_binop_node_new(int lineno, int binop, kuma_node *lhs, kuma_node *rhs);
 

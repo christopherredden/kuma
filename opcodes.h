@@ -33,23 +33,27 @@ typedef uint32_t kuma_instruction;
 #define GET_ARG_C(i) ((uint32_t)(i>>POS_C)) & (~(0xFFFFFF<<SIZE_C))
 #define GET_ARG_Bx(i) ((uint32_t)(i>>POS_Bx)) & (~(0xFFFFFF<<SIZE_Bx))
 
-#define CREATE_ABC(o,a,b,c)	(((kuma_opcode)o)<<POS_OP) \
+#define CREATE_ABC(o,a,b,c)	((((kuma_opcode)o)<<POS_OP) \
 			| (((uint8_t)a)<<POS_A) \
 			| (((uint8_t)b)<<POS_B) \
-			| (((uint8_t)c)<<POS_C)
+			| (((uint8_t)c)<<POS_C))
 
-#define CREATE_ABx(o,a,bx)	(((kuma_opcode)o)<<POS_OP) \
+#define CREATE_ABx(o,a,bx)	((((kuma_opcode)o)<<POS_OP) \
 			| (((uint8_t)a)<<POS_A) \
-			| (((uint16_t)bx)<<POS_Bx)
+			| (((uint16_t)bx)<<POS_Bx))
 
 typedef enum
 {
     OP_LOADCONSTANT,
+    OP_LOADBOOL,
+    OP_MOVE,
     OP_ADD,
-    OP_HALT
+    OP_JMP,
+    OP_EQ,
+    OP_HALT,
 
 } kuma_opcode;
 
-
+int kuma_opcodes_dump(kuma_instruction *ops);
 
 #endif

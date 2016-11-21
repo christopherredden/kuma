@@ -1,3 +1,3 @@
-let foo:int = 245
-let bar:int = 999
-var foobar:int = foo + bar
+let foo:int = 1
+
+foo = if foo then 3 else 9 end

@@ -16,6 +16,9 @@ enum TokenType
     TOK_END,
     TOK_LET,
     TOK_VAR,
+    TOK_IF,
+    TOK_THEN,
+    TOK_ELSE,
     
     TOK_IDENTIFIER,
     TOK_STRING,

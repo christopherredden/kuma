@@ -25,6 +25,8 @@ int kuma_vm_init(kuma_vm *vm, uint8_t *data)
 int kuma_vm_execute(kuma_vm *vm)
 {
     printf("\n");
+    kuma_opcodes_dump(vm->ops);
+    printf("\n");
 
     kuma_instruction *ip = vm->ops;
     kuma_instruction i;
@@ -45,6 +47,33 @@ int kuma_vm_execute(kuma_vm *vm)
             case OP_ADD:
                 printf("OP_ADD %i %i %i\n", GET_ARG_A(i), GET_ARG_B(i), GET_ARG_C(i));
                 vm->main.registers[GET_ARG_A(i)].int_val = vm->main.registers[GET_ARG_B(i)].int_val + vm->main.registers[GET_ARG_C(i)].int_val;
+                break;
+
+            case OP_JMP:
+                printf("OP_JMP %i\n", GET_ARG_A(i));
+                ip += GET_ARG_A(i);
+                break;
+
+            case OP_LOADBOOL:
+                printf("OP_LOADBOOL %i %i\n", GET_ARG_A(i), GET_ARG_B(i));
+                vm->main.registers[GET_ARG_A(i)].int_val = GET_ARG_B(i);
+                break;
+
+            case OP_MOVE:
+                printf("OP_MOVE %i %i\n", GET_ARG_A(i), GET_ARG_B(i));
+                vm->main.registers[GET_ARG_A(i)] = vm->main.registers[GET_ARG_B(i)];
+                break;
+
+            case OP_EQ:
+                printf("OP_EQ %i %i %i\n", GET_ARG_A(i), GET_ARG_B(i), GET_ARG_C(i));
+                kuma_value a = vm->main.registers[GET_ARG_A(i)];
+                kuma_value b = vm->main.registers[GET_ARG_B(i)];
+                kuma_value c = vm->main.registers[GET_ARG_C(i)];
+                if((b.int_val == c.int_val) == a.int_val)
+                {
+                    ip++;
+                }
+
                 break;
 
             case OP_HALT:

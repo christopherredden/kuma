@@ -70,6 +70,52 @@ int gen_ident_node(kuma_gen_context *ctx, kuma_ident_node *node)
     return reg;
 }
 
+int gen_if_node(kuma_gen_context *ctx, kuma_if_node *node)
+{
+    int cond = gen_node(ctx, node->cond);
+
+    uint32_t boolreg = ctx->num_registers++;
+    uint32_t resultreg = ctx->num_registers++;
+
+    klist_add(ctx->oplist, CREATE_ABC(OP_LOADBOOL, boolreg, 1, 0));
+    klist_add(ctx->oplist, CREATE_ABC(OP_EQ, boolreg, cond, boolreg));
+    size_t prevsize = klist_size(ctx->oplist);
+
+    int ifreg = gen_node(ctx, node->ifblock);
+    klist_add(ctx->oplist, CREATE_ABC(OP_MOVE, resultreg, ifreg, 0)); // Store If result
+    int ifjmp = (int)(klist_size(ctx->oplist) - prevsize) + 1; // Jump over IF
+    klist_add_at(ctx->oplist, CREATE_ABC(OP_JMP, ifjmp, 0, 0), prevsize); // Insert jump to Else
+    prevsize = klist_size(ctx->oplist);
+
+    int elsereg = gen_node(ctx, node->elseblock);
+    klist_add(ctx->oplist, CREATE_ABC(OP_MOVE, resultreg, elsereg, 0)); // Store Else result
+    int elsejmp = (int)(klist_size(ctx->oplist) - prevsize);
+    klist_add_at(ctx->oplist, CREATE_ABC(OP_JMP, elsejmp, 0, 0), prevsize); // Insert jump to Else
+
+    return resultreg;
+}
+
+int gen_assignment_node(kuma_gen_context *ctx, kuma_assignment_node *node)
+{
+    int ident = (int)ktable_get(ctx->idents, node->ident);
+    int r = gen_node(ctx, node->expr);
+
+    klist_add(ctx->oplist, CREATE_ABC(OP_MOVE, ident, r, 0));
+
+    return ident;
+}
+
+int gen_block_node(kuma_gen_context *ctx, kuma_block_node *node)
+{
+    int r = 0;
+    for(int i = 0; i < klist_size(node->stmts); i++)
+    {
+        r = gen_node(ctx, klist_get_at(kuma_node*, node->stmts, i));
+    }
+
+    return r;
+}
+
 int gen_node(kuma_gen_context *ctx, kuma_node *node)
 {
     if(node && node->type == NODE_VAR_DECL) return gen_var_node(ctx, (kuma_var_node*)node);
@@ -77,6 +123,9 @@ int gen_node(kuma_gen_context *ctx, kuma_node *node)
     if(node && node->type == NODE_INTEGER) return gen_integer_node(ctx, (kuma_integer_node*)node);
     if(node && node->type == NODE_BINOP) return gen_binop_node(ctx, (kuma_binop_node*)node);
     if(node && node->type == NODE_IDENTIFIER) return gen_ident_node(ctx, (kuma_ident_node*)node);
+    if(node && node->type == NODE_IF) return gen_if_node(ctx, (kuma_if_node*)node);
+    if(node && node->type == NODE_ASSIGNMENT) return gen_assignment_node(ctx, (kuma_assignment_node*)node);
+    if(node && node->type == NODE_BLOCK) return gen_block_node(ctx, (kuma_block_node*)node);
 
     return 0;
 }

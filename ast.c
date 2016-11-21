@@ -71,6 +71,29 @@ kuma_block_node * kuma_block_node_new(int lineno)
     return node;
 }
 
+kuma_if_node * kuma_if_node_new(int lineno, kuma_node *cond, kuma_node *ifblock, kuma_node *elseblock)
+{
+    kuma_if_node *node = malloc(sizeof(kuma_if_node));
+    node->base.type = NODE_IF;
+    node->base.lineno = lineno;
+    node->cond = cond;
+    node->ifblock = ifblock;
+    node->elseblock = elseblock;
+
+    return node;
+}
+
+kuma_assignment_node * kuma_assignment_node_new(int lineno, char *ident, kuma_node *expr)
+{
+    kuma_assignment_node *node = malloc(sizeof(kuma_assignment_node));
+    node->base.type = NODE_ASSIGNMENT;
+    node->base.lineno = lineno;
+    node->ident = ident;
+    node->expr = expr;
+
+    return node;
+}
+
 int dump_var_node(kuma_var_node *node)
 {
     INDENT;
@@ -118,6 +141,26 @@ int dump_ident_node(kuma_ident_node *node)
     printf("IDENTIFIER line:%i %s\n", node->base.lineno, node->name);
 }
 
+int dump_if_node(kuma_if_node *node)
+{
+    INDENT;
+    printf("IF_STMNT line:%i\n", node->base.lineno);
+    indent_level++;
+    dump_node(node->cond);
+    dump_node(node->ifblock);
+    dump_node(node->elseblock);
+    indent_level--;
+}
+
+int dump_assignment_node(kuma_assignment_node *node)
+{
+    INDENT;
+    printf("ASSIGNMENT line:%i %s\n", node->base.lineno, node->ident);
+    indent_level++;
+    dump_node(node->expr);
+    indent_level--;
+}
+
 int dump_node(kuma_node *node)
 {
     if(node && node->type == NODE_VAR_DECL) return dump_var_node((kuma_var_node*)node);
@@ -125,13 +168,16 @@ int dump_node(kuma_node *node)
     if(node && node->type == NODE_INTEGER) return dump_integer_node((kuma_integer_node*)node);
     if(node && node->type == NODE_BINOP) return dump_binop_node((kuma_binop_node*)node);
     if(node && node->type == NODE_IDENTIFIER) return dump_ident_node((kuma_ident_node*)node);
+    if(node && node->type == NODE_IF) return dump_if_node((kuma_if_node*)node);
+    if(node && node->type == NODE_BLOCK) return dump_block((kuma_block_node*)node);
+    if(node && node->type == NODE_ASSIGNMENT) return dump_assignment_node((kuma_assignment_node*)node);
 }
 
 int dump_block(kuma_block_node *block)
 {
     INDENT;
 
-    printf("BLOCK\n");
+    printf("BLOCK line:%i\n", block->base.lineno);
     indent_level++;
 
     for(int i = 0; i < klist_size(block->stmts); i++)
