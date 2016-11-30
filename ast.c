@@ -1,5 +1,6 @@
 #include "ast.h"
 #include "string.h"
+#include "lexer.h"
 
 int indent_level = 0;
 
@@ -57,6 +58,7 @@ kuma_binop_node * kuma_binop_node_new(int lineno, int binop, kuma_node *lhs, kum
     node->base.lineno = lineno;
     node->lhs = lhs;
     node->rhs = rhs;
+    node->binop = binop;
 
     return node;
 }
@@ -127,7 +129,8 @@ int dump_integer_node(kuma_integer_node *node)
 int dump_binop_node(kuma_binop_node *node)
 {
     INDENT;
-    printf("BINOP line:%i\n", node->base.lineno);
+
+    printf("BINOP line:%i op:%i token:%s\n", node->base.lineno, node->binop, kuma_lexer_token_string(node->binop));
 
     indent_level++;
     dump_node(node->lhs);

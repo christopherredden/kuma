@@ -49,6 +49,21 @@ int kuma_vm_execute(kuma_vm *vm)
                 vm->main.registers[GET_ARG_A(i)].int_val = vm->main.registers[GET_ARG_B(i)].int_val + vm->main.registers[GET_ARG_C(i)].int_val;
                 break;
 
+            case OP_SUB:
+                printf("OP_SUB %i %i %i\n", GET_ARG_A(i), GET_ARG_B(i), GET_ARG_C(i));
+                vm->main.registers[GET_ARG_A(i)].int_val = vm->main.registers[GET_ARG_B(i)].int_val - vm->main.registers[GET_ARG_C(i)].int_val;
+                break;
+
+            case OP_MUL:
+                printf("OP_MUL %i %i %i\n", GET_ARG_A(i), GET_ARG_B(i), GET_ARG_C(i));
+                vm->main.registers[GET_ARG_A(i)].int_val = vm->main.registers[GET_ARG_B(i)].int_val * vm->main.registers[GET_ARG_C(i)].int_val;
+                break;
+
+            case OP_DIV:
+                printf("OP_DIV %i %i %i\n", GET_ARG_A(i), GET_ARG_B(i), GET_ARG_C(i));
+                vm->main.registers[GET_ARG_A(i)].int_val = vm->main.registers[GET_ARG_B(i)].int_val / vm->main.registers[GET_ARG_C(i)].int_val;
+                break;
+
             case OP_JMP:
                 printf("OP_JMP %i\n", GET_ARG_A(i));
                 ip += GET_ARG_A(i);

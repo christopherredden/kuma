@@ -84,5 +84,6 @@ typedef struct
 int kuma_lexer_init(kuma_lexer_t *lex, char *source, const char *filename);
 int kuma_lexer_scan(kuma_lexer_t *lex);
 int kuma_lexer_dump(kuma_lexer_t *lex);
+const char* kuma_lexer_token_string(int token);
 
 #endif

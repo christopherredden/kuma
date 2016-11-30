@@ -262,3 +262,58 @@ int kuma_lexer_dump(kuma_lexer_t *lex)
 
     return 1;
 }
+
+#define TOKEN_STRING(tk) case (int)tk: return #tk;
+const char* kuma_lexer_token_string(int token)
+{
+    switch(token)
+    {
+        TOKEN_STRING(TOK_EOF)
+        TOKEN_STRING(TOK_EXTERN)
+        TOKEN_STRING(TOK_RETURN)
+        TOKEN_STRING(TOK_BREAK)
+        TOKEN_STRING(TOK_CONTINUE)
+        TOKEN_STRING(TOK_CLASS)
+        TOKEN_STRING(TOK_DEF)
+        TOKEN_STRING(TOK_END)
+        TOKEN_STRING(TOK_LET)
+        TOKEN_STRING(TOK_VAR)
+        TOKEN_STRING(TOK_IF)
+        TOKEN_STRING(TOK_THEN)
+        TOKEN_STRING(TOK_ELSE)
+
+        TOKEN_STRING(TOK_IDENTIFIER)
+        TOKEN_STRING(TOK_STRING)
+        TOKEN_STRING(TOK_NUMBER)
+        TOKEN_STRING(TOK_INTEGER)
+
+        TOKEN_STRING(TOK_EQUAL)
+        TOKEN_STRING(TOK_NOT)
+        TOKEN_STRING(TOK_CEQ)
+        TOKEN_STRING(TOK_CNE)
+        TOKEN_STRING(TOK_CLT)
+        TOKEN_STRING(TOK_CLE)
+        TOKEN_STRING(TOK_CGT)
+        TOKEN_STRING(TOK_CGE)
+
+        TOKEN_STRING(TOK_COLON)
+        TOKEN_STRING(TOK_LPAREN)
+        TOKEN_STRING(TOK_RPAREN)
+        TOKEN_STRING(TOK_LBRACE)
+        TOKEN_STRING(TOK_RBRACE)
+
+        TOKEN_STRING(TOK_DOT)
+        TOKEN_STRING(TOK_COMMA)
+
+        TOKEN_STRING(TOK_PLUS)
+        TOKEN_STRING(TOK_MINUS)
+        TOKEN_STRING(TOK_MUL)
+        TOKEN_STRING(TOK_DIV)
+
+        TOKEN_STRING(TOK_NEWLINE)
+
+        TOKEN_STRING(TOK_ILLEGAL)
+    }
+
+    return "??";
+}

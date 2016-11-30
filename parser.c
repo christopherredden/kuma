@@ -16,6 +16,27 @@ kuma_node * parse_expr(kuma_parser_t *parser);
 kuma_node * parse_block(kuma_parser_t *parser);
 kuma_node * parse_if_expr(kuma_parser_t *parser);
 
+int get_token_precedence(int token)
+{
+    switch(token)
+    {
+        case TOK_CLT:
+        case TOK_CGT:
+        case TOK_CEQ:
+        case TOK_CGE:
+        case TOK_CLE:
+            return 10;
+        case TOK_PLUS:
+        case TOK_MINUS:
+            return 20;
+        case TOK_MUL:
+        case TOK_DIV:
+            return 40;
+    }
+
+    return -1;
+}
+
 int kuma_parser_init(kuma_parser_t *parser, kuma_lexer_t *lex)
 {
     parser->lex = lex;
@@ -163,25 +184,41 @@ kuma_node * parse_unary_expr(kuma_parser_t *parser)
     return NULL;
 }
 
-kuma_node * parse_binop_rhs(kuma_parser_t *parser, kuma_node *lhs)
+kuma_node * parse_binop_rhs(kuma_parser_t *parser, kuma_node *lhs, int exp_prec)
 {
-    if(!IS(TOK_PLUS))
-        return lhs;
-
-    int binop = CURRENT;
-    NEXT;
-
-    kuma_node *rhs = parse_primary_expr(parser);
-
-    // Expected RHS expression
-    if(rhs == NULL)
+    while(1)
     {
-        return NULL;
+        int tok_prec = get_token_precedence(CURRENT);
+
+        if (tok_prec < exp_prec)
+            return lhs;
+
+        int binop = CURRENT;
+        NEXT; // Eat Op token
+
+        kuma_node *rhs = parse_primary_expr(parser);
+
+        // Expected RHS expression
+        if (rhs == NULL)
+        {
+            return NULL;
+        }
+
+        int next_prec = get_token_precedence(CURRENT);
+
+        if (tok_prec < next_prec)
+        {
+            rhs = parse_binop_rhs(parser, rhs, tok_prec + 1);
+
+            // Expected RHS expression
+            if(rhs == NULL)
+            {
+                return NULL;
+            }
+        }
+
+        lhs = (kuma_node *)kuma_binop_node_new(LINENO, binop, lhs, rhs);
     }
-
-    kuma_node *node = (kuma_node *)kuma_binop_node_new(LINENO, binop, lhs, rhs);
-
-    return node;
 }
 
 kuma_node * parse_expr(kuma_parser_t *parser)
@@ -193,7 +230,7 @@ kuma_node * parse_expr(kuma_parser_t *parser)
         return NULL;
     }
 
-    return parse_binop_rhs(parser, lhs);
+    return parse_binop_rhs(parser, lhs, 0);
 
     //NEXT;
 }

@@ -6,6 +6,7 @@
 #include "ast.h"
 #include "opcodes.h"
 #include "table.h"
+#include "lexer.h"
 
 #define MAX_CONSTANTS 32749
 
@@ -58,7 +59,24 @@ int gen_binop_node(kuma_gen_context *ctx, kuma_binop_node *node)
     uint32_t rhs = gen_node(ctx, node->rhs);
     uint32_t reg = ctx->num_registers++;
 
-    int op = CREATE_ABC(OP_ADD, reg, lhs, rhs);
+    int binop = 0;
+    switch(node->binop)
+    {
+        case TOK_PLUS:
+            binop = OP_ADD;
+            break;
+        case TOK_MINUS:
+            binop = OP_SUB;
+            break;
+        case TOK_MUL:
+            binop = OP_MUL;
+            break;
+        case TOK_DIV:
+            binop = OP_DIV;
+            break;
+    }
+
+    int op = CREATE_ABC(binop, reg, lhs, rhs);
     klist_add(ctx->oplist, op);
 
     return reg;
