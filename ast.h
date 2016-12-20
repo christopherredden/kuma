@@ -3,6 +3,9 @@
 
 #include "list.h"
 
+#define KUMA_MAX_PARAMS 256
+#define KUMA_MAX_RETURNS 256
+
 enum NodeType
 {
     NODE_BLOCK = 0,
@@ -13,6 +16,10 @@ enum NodeType
     NODE_BINOP,
     NODE_IF,
     NODE_ASSIGNMENT,
+    NODE_CALL,
+    NODE_FUNCTION,
+    NODE_PARAM,
+    NODE_RETURN,
 };
 
 typedef struct 
@@ -76,11 +83,56 @@ typedef struct
 {
     kuma_node base;
 
-    char *ident;
+    char *name;
     kuma_node *expr;
 } kuma_assignment_node;
 
-kuma_assignment_node * kuma_assignment_node_new(int lineno, char *ident, kuma_node *expr);
+typedef struct
+{
+    kuma_node base;
+
+    char *name;
+    int expr_count;
+    kuma_node *expr_list[KUMA_MAX_PARAMS];
+} kuma_call_node;
+
+typedef struct
+{
+    kuma_node base;
+
+    char *name;
+    int param_count;
+    kuma_node *param_list[KUMA_MAX_PARAMS];
+    int return_count;
+    kuma_node *return_list[KUMA_MAX_RETURNS];
+    kuma_node *body;
+} kuma_function_node;
+
+typedef struct
+{
+    kuma_node base;
+
+    char *name;
+    char *type;
+} kuma_param_node;
+
+typedef struct
+{
+    kuma_node base;
+
+    int expr_count;
+    kuma_node *expr_list[KUMA_MAX_RETURNS];
+} kuma_return_node;
+
+kuma_return_node * kuma_return_node_new(int lineno, int expr_count, kuma_node **expr_list);
+
+kuma_param_node * kuma_param_node_new(int lineno, char *name, char *type);
+
+kuma_function_node * kuma_function_node_new(int lineno, char *name, int param_count, kuma_node **param_list, int return_count, kuma_node **return_list, kuma_node *body);
+
+kuma_call_node * kuma_call_node_new(int lineno, char *name, int expr_count, kuma_node **expr_list);
+
+kuma_assignment_node * kuma_assignment_node_new(int lineno, char *name, kuma_node *expr);
 
 kuma_if_node * kuma_if_node_new(int lineno, kuma_node *cond, kuma_node *ifblock, kuma_node *elseblock);
 

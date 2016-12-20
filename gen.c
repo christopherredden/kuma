@@ -115,7 +115,7 @@ int gen_if_node(kuma_gen_context *ctx, kuma_if_node *node)
 
 int gen_assignment_node(kuma_gen_context *ctx, kuma_assignment_node *node)
 {
-    int ident = (int)ktable_get(ctx->idents, node->ident);
+    int ident = (int)ktable_get(ctx->idents, node->name);
     int r = gen_node(ctx, node->expr);
 
     klist_add(ctx->oplist, CREATE_ABC(OP_MOVE, ident, r, 0));

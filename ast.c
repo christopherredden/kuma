@@ -7,6 +7,71 @@ int indent_level = 0;
 #define INDENT \
     for(int i = 0; i < indent_level; i++) { printf("\t"); } \
 
+kuma_param_node * kuma_param_node_new(int lineno, char *name, char *type)
+{
+    kuma_param_node *node = malloc(sizeof(kuma_param_node));
+    node->base.type = NODE_PARAM;
+    node->base.lineno = lineno;
+    node->name = memcpy(malloc(strlen(name)), name, strlen(name));
+    node->type = memcpy(malloc(strlen(type)), type, strlen(type));
+
+    return node;
+}
+
+kuma_return_node * kuma_return_node_new(int lineno, int expr_count, kuma_node **expr_list)
+{
+    kuma_return_node *node = malloc(sizeof(kuma_return_node));
+    node->base.type = NODE_RETURN;
+    node->base.lineno = lineno;
+    node->expr_count = expr_count;
+
+    for(int i = 0; i < expr_count; i++)
+    {
+        node->expr_list[i] = expr_list[i];
+    }
+
+    return node;
+}
+
+kuma_call_node * kuma_call_node_new(int lineno, char *name, int expr_count, kuma_node **expr_list)
+{
+    kuma_call_node *node = malloc(sizeof(kuma_call_node));
+    node->base.type = NODE_CALL;
+    node->base.lineno = lineno;
+    node->expr_count = expr_count;
+    node->name = memcpy(malloc(strlen(name)), name, strlen(name));
+
+    for(int i = 0; i < expr_count; i++)
+    {
+        node->expr_list[i] = expr_list[i];
+    }
+
+    return node;
+}
+
+kuma_function_node * kuma_function_node_new(int lineno, char *name, int param_count, kuma_node **param_list, int return_count, kuma_node **return_list, kuma_node *body)
+{
+    kuma_function_node *node = malloc(sizeof(kuma_function_node));
+    node->base.type = NODE_FUNCTION;
+    node->base.lineno = lineno;
+    node->name = memcpy(malloc(strlen(name)), name, strlen(name));
+    node->param_count = param_count;
+    node->return_count = return_count;
+    node->body = body;
+
+    for(int i = 0; i < param_count; i++)
+    {
+        node->param_list[i] = param_list[i];
+    }
+
+    for(int i = 0; i < return_count; i++)
+    {
+        node->return_list[i] = return_list[i];
+    }
+
+    return node;
+}
+
 kuma_integer_node * kuma_integer_node_new(int lineno, int value)
 {
     kuma_integer_node *node = malloc(sizeof(kuma_integer_node));
@@ -85,12 +150,12 @@ kuma_if_node * kuma_if_node_new(int lineno, kuma_node *cond, kuma_node *ifblock,
     return node;
 }
 
-kuma_assignment_node * kuma_assignment_node_new(int lineno, char *ident, kuma_node *expr)
+kuma_assignment_node * kuma_assignment_node_new(int lineno, char *name, kuma_node *expr)
 {
     kuma_assignment_node *node = malloc(sizeof(kuma_assignment_node));
     node->base.type = NODE_ASSIGNMENT;
     node->base.lineno = lineno;
-    node->ident = ident;
+    node->name = memcpy(malloc(strlen(name)), name, strlen(name));
     node->expr = expr;
 
     return node;
@@ -158,10 +223,69 @@ int dump_if_node(kuma_if_node *node)
 int dump_assignment_node(kuma_assignment_node *node)
 {
     INDENT;
-    printf("ASSIGNMENT line:%i %s\n", node->base.lineno, node->ident);
+    printf("ASSIGNMENT line:%i %s\n", node->base.lineno, node->name);
     indent_level++;
     dump_node(node->expr);
     indent_level--;
+}
+
+int dump_return_node(kuma_return_node *node)
+{
+    INDENT;
+    printf("RETURN line:%i\n", node->base.lineno);
+    indent_level++;
+    for (int i = 0; i < node->expr_count; i++)
+    {
+        dump_node(node->expr_list[i]);
+    }
+    indent_level--;
+}
+
+int dump_call_node(kuma_call_node *node)
+{
+    INDENT;
+    printf("CALL line:%i %s\n", node->base.lineno, node->name);
+    indent_level++;
+    for (int i = 0; i < node->expr_count; i++)
+    {
+        dump_node(node->expr_list[i]);
+    }
+    indent_level--;
+}
+
+int dump_function_node(kuma_function_node *node)
+{
+    INDENT;
+    printf("FUNCTION line:%i %s\n", node->base.lineno, node->name);
+    indent_level++;
+    INDENT
+    printf("PARAMS\n");
+    indent_level++;
+    for (int i = 0; i < node->param_count; i++)
+    {
+        dump_node(node->param_list[i]);
+    }
+    indent_level--;
+    INDENT
+    printf("RETURNS\n");
+    indent_level++;
+    for (int i = 0; i < node->return_count; i++)
+    {
+        dump_node(node->return_list[i]);
+    }
+    indent_level--;
+    INDENT
+    printf("BODY\n");
+    indent_level++;
+    dump_node(node->body);
+    indent_level--;
+    indent_level--;
+}
+
+int dump_param_node(kuma_param_node *node)
+{
+    INDENT;
+    printf("PARAM line:%i %s %s\n", node->base.lineno, node->name, node->type);
 }
 
 int dump_node(kuma_node *node)
@@ -174,6 +298,10 @@ int dump_node(kuma_node *node)
     if(node && node->type == NODE_IF) return dump_if_node((kuma_if_node*)node);
     if(node && node->type == NODE_BLOCK) return dump_block((kuma_block_node*)node);
     if(node && node->type == NODE_ASSIGNMENT) return dump_assignment_node((kuma_assignment_node*)node);
+    if(node && node->type == NODE_CALL) return dump_call_node((kuma_call_node*)node);
+    if(node && node->type == NODE_FUNCTION) return dump_function_node((kuma_function_node*)node);
+    if(node && node->type == NODE_PARAM) return dump_param_node((kuma_param_node*)node);
+    if(node && node->type == NODE_RETURN) return dump_return_node((kuma_return_node*)node);
 }
 
 int dump_block(kuma_block_node *block)

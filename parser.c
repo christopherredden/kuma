@@ -15,6 +15,7 @@
 kuma_node * parse_expr(kuma_parser_t *parser);
 kuma_node * parse_block(kuma_parser_t *parser);
 kuma_node * parse_if_expr(kuma_parser_t *parser);
+kuma_node * parse_ident_expr(kuma_parser_t *parser);
 
 int get_token_precedence(int token)
 {
@@ -75,13 +76,150 @@ kuma_node * parse_assignment_expr(kuma_parser_t *parser, char *ident)
     return node;
 }
 
+kuma_node * parse_param(kuma_parser_t *parser)
+{
+    // Param name
+    char *name = parser->tok->value.string;
+    NEXT; //Consume Ident
+
+    if(!ACCEPT(TOK_COLON))
+    {
+        // Colon expected
+        return NULL;
+    }
+
+    // Param type
+    char *type = parser->tok->value.string;
+    NEXT; //Consume Ident
+
+    kuma_node *node = (kuma_node *)kuma_param_node_new(LINENO, name, type);
+    return node;
+}
+
+kuma_node * parse_function_expr(kuma_parser_t *parser)
+{
+    int param_count = 0;
+    int return_count = 0;
+
+    kuma_node *param_list[KUMA_MAX_PARAMS];
+    kuma_node *return_list[KUMA_MAX_RETURNS];
+
+    // Consume 'func'
+    ACCEPT(TOK_FUNC);
+
+    // Ident of Func
+    char *ident = parser->tok->value.string;
+    NEXT; //Consume Ident
+
+    if(!ACCEPT(TOK_LPAREN))
+    {
+        // Missing LPAREN
+        return NULL;
+    }
+
+    while(1)
+    {
+        if(ACCEPT(TOK_RPAREN))
+        {
+            break;
+        }
+        else if(ACCEPT(TOK_COMMA))
+        {
+            continue;
+        }
+
+        kuma_node *param = parse_param(parser);
+
+        if(param != NULL)
+        {
+            param_list[param_count] = param;
+            param_count++;
+        }
+    }
+
+    // If returns
+    if(ACCEPT(TOK_LPAREN))
+    {
+        while(1)
+        {
+            if(ACCEPT(TOK_RPAREN))
+            {
+                break;
+            }
+            else if(ACCEPT(TOK_COMMA))
+            {
+                continue;
+            }
+
+            kuma_node *r = parse_ident_expr(parser);
+
+            if(r != NULL)
+            {
+                return_list[return_count] = r;
+                return_count++;
+            }
+        }
+    }
+
+    // Body
+    kuma_node *body = parse_block(parser);
+
+    if(!ACCEPT(TOK_END))
+    {
+        return NULL;
+    }
+
+    kuma_node *node = (kuma_node *)kuma_function_node_new(LINENO, ident, param_count, param_list, return_count, return_list, body);
+    return node;
+}
+
+kuma_node * parse_call_expr(kuma_parser_t *parser, char *ident)
+{
+    int expr_count = 0;
+    kuma_node *expr_list[KUMA_MAX_PARAMS];
+
+    kuma_node *expr = NULL;
+
+    while(1)
+    {
+        if(ACCEPT(TOK_RPAREN))
+        {
+            break;
+        }
+        else if(ACCEPT(TOK_COMMA))
+        {
+            continue;
+        }
+
+        expr = parse_expr(parser);
+
+        if(expr != NULL)
+        {
+            expr_list[expr_count] = expr;
+            expr_count++;
+        }
+        else
+        {
+            // Invalid expr
+            return NULL;
+        }
+    }
+
+    kuma_node *node = (kuma_node *)kuma_call_node_new(LINENO, ident, expr_count, expr_list);
+    return node;
+}
+
 kuma_node * parse_ident_expr(kuma_parser_t *parser)
 {
     char *ident = parser->tok->value.string;
     NEXT; //Consume Ident
 
-    // Is not comparison
+    if(ACCEPT(TOK_LPAREN))
+    {
+        return parse_call_expr(parser, ident);
+    }
 
+    // Is not comparison
     if(ACCEPT(TOK_EQUAL))
     {
         return parse_assignment_expr(parser, ident);
@@ -152,6 +290,24 @@ kuma_node * parse_let_expr(kuma_parser_t *parser)
     return node;
 }
 
+kuma_node * parse_paren_expr(kuma_parser_t *parser)
+{
+    NEXT; // Consume LPAREN
+
+    kuma_node *node = parse_expr(parser);
+
+    if(node == NULL)
+        return NULL;
+
+    if(!ACCEPT(TOK_RPAREN))
+    {
+        // Expected ')'
+        return NULL;
+    }
+
+    return node;
+}
+
 kuma_node * parse_primary_expr(kuma_parser_t *parser)
 {
     if(IS(TOK_IDENTIFIER))
@@ -168,6 +324,12 @@ kuma_node * parse_primary_expr(kuma_parser_t *parser)
 
     if(IS(TOK_IF))
         return parse_if_expr(parser);
+
+    if(IS(TOK_LPAREN))
+        return parse_paren_expr(parser);
+
+    if(IS(TOK_FUNC))
+        return parse_function_expr(parser);
 
     return NULL;
 }
@@ -250,6 +412,33 @@ kuma_node * parse_if_expr(kuma_parser_t *parser)
     return node;
 }
 
+kuma_node * parse_return(kuma_parser_t *parser)
+{
+    ACCEPT(TOK_RETURN);
+
+    int expr_count = 0;
+    kuma_node *expr_list[KUMA_MAX_RETURNS];
+
+    while(!IS(TOK_NEWLINE))
+    {
+        if(ACCEPT(TOK_COMMA))
+        {
+            continue;
+        }
+
+        kuma_node *expr = parse_expr(parser);
+
+        if(expr != NULL)
+        {
+            expr_list[expr_count] = expr;
+            expr_count++;
+        }
+    }
+
+    kuma_node *node = kuma_return_node_new(LINENO, expr_count, expr_list);
+    return node;
+}
+
 kuma_node * parse_stmnt(kuma_parser_t *parser)
 {
     if(IS(TOK_VAR))
@@ -257,6 +446,9 @@ kuma_node * parse_stmnt(kuma_parser_t *parser)
 
     if(IS(TOK_LET))
         return parse_let_expr(parser);
+
+    if(IS(TOK_RETURN))
+        return parse_return(parser);
 
     return parse_expr(parser);
 }

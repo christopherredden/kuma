@@ -30,3 +30,11 @@ println(myresult)
 println(add(9, bar))
 println(add(40, 2))
 println(add(two(0)))
+
+func fib(n:int):int
+    if (n < 2)
+        return n
+    else
+        return fib(n-1) + fib(n-2)
+    end
+end

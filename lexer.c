@@ -107,11 +107,11 @@ int scan_ident(kuma_lexer_t *lex, int c)
         case 2:
             if(strcmp("if", buf) == 0) return TOKEN(TOK_IF);
         case 3:
-            if(strcmp("def", buf) == 0) return TOKEN(TOK_DEF);
             if(strcmp("end", buf) == 0) return TOKEN(TOK_END);
             if(strcmp("let", buf) == 0) return TOKEN(TOK_LET);
             if(strcmp("var", buf) == 0) return TOKEN(TOK_VAR);
         case 4:
+            if(strcmp("func", buf) == 0) return TOKEN(TOK_FUNC);
             if(strcmp("then", buf) == 0) return TOKEN(TOK_THEN);
             if(strcmp("else", buf) == 0) return TOKEN(TOK_ELSE);
         case 5:
@@ -274,7 +274,7 @@ const char* kuma_lexer_token_string(int token)
         TOKEN_STRING(TOK_BREAK)
         TOKEN_STRING(TOK_CONTINUE)
         TOKEN_STRING(TOK_CLASS)
-        TOKEN_STRING(TOK_DEF)
+        TOKEN_STRING(TOK_FUNC)
         TOKEN_STRING(TOK_END)
         TOKEN_STRING(TOK_LET)
         TOKEN_STRING(TOK_VAR)

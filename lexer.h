@@ -12,7 +12,7 @@ enum TokenType
     TOK_BREAK,
     TOK_CONTINUE,
     TOK_CLASS,
-    TOK_DEF,
+    TOK_FUNC,
     TOK_END,
     TOK_LET,
     TOK_VAR,
