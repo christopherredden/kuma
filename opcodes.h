@@ -53,7 +53,13 @@ typedef enum
     OP_DIV,
     OP_JMP,
     OP_EQ,
+    OP_LT,
+    OP_LEQ,
+    OP_GT,
+    OP_GEQ,
     OP_HALT,
+	OP_CALL,
+    OP_NOP,
 
 } kuma_opcode;
 

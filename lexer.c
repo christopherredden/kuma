@@ -16,7 +16,7 @@
 
 #define PREV (lex->source[--lex->cursor] = lex->last)
 
-#define PEEK (lex->source[lex->cursor+1])
+#define PEEK (lex->source[lex->cursor])
 
 #define CURRENT (lex->last)
 
@@ -165,6 +165,7 @@ int scan_number(kuma_lexer_t *lex, int c)
 int kuma_lexer_scan(kuma_lexer_t *lex)
 {
     int c = 0;
+    char foo;
 scan:
     switch(c = NEXT)
     {

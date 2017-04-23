@@ -13,18 +13,24 @@ typedef union
 
 typedef struct
 {
-    kuma_value *registers;
-    uint32_t nregisters;
-
-    kuma_value *constants;
-    uint32_t nconstants;
+    uint8_t nparams;
+    uint32_t stacktop;
+    uint32_t rinstruction;
 } kuma_frame;
 
 typedef struct
 {
     kuma_instruction *ops;
 
+    kuma_value *registers;
+    uint32_t nregisters;
+
+    kuma_value *constants;
+    uint32_t nconstants;
+
     kuma_frame main;
+    kuma_frame functions[256];
+    kuma_frame *cframe;
 } kuma_vm;
 
 int kuma_vm_init(kuma_vm *vm, uint8_t *data);

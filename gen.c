@@ -74,10 +74,33 @@ int gen_binop_node(kuma_gen_context *ctx, kuma_binop_node *node)
         case TOK_DIV:
             binop = OP_DIV;
             break;
+        case TOK_CEQ:
+            binop = OP_EQ;
+            break;
+        case TOK_CGE:
+            binop = OP_GEQ;
+            break;
+        case TOK_CGT:
+            binop = OP_GT;
+            break;
+        case TOK_CLE:
+            binop = OP_LEQ;
+            break;
+        case TOK_CLT:
+            binop = OP_LT;
+            break;
     }
 
-    int op = CREATE_ABC(binop, reg, lhs, rhs);
-    klist_add(ctx->oplist, op);
+    if(binop == OP_EQ || binop == OP_GEQ || binop == OP_GT || binop == OP_LEQ || binop == OP_LT)
+    {
+        klist_add(ctx->oplist, CREATE_ABx(OP_LOADBOOL, reg, 1));
+        klist_add(ctx->oplist, CREATE_ABC(binop, reg, lhs, rhs));
+        klist_add(ctx->oplist, CREATE_ABx(OP_LOADBOOL, reg, 0));
+    }
+    else
+    {
+        klist_add(ctx->oplist, CREATE_ABC(binop, reg, lhs, rhs));
+    }
 
     return reg;
 }
@@ -95,7 +118,7 @@ int gen_if_node(kuma_gen_context *ctx, kuma_if_node *node)
     uint32_t boolreg = ctx->num_registers++;
     uint32_t resultreg = ctx->num_registers++;
 
-    klist_add(ctx->oplist, CREATE_ABC(OP_LOADBOOL, boolreg, 1, 0));
+    klist_add(ctx->oplist, CREATE_ABx(OP_LOADBOOL, boolreg, 1));
     klist_add(ctx->oplist, CREATE_ABC(OP_EQ, boolreg, cond, boolreg));
     size_t prevsize = klist_size(ctx->oplist);
 
@@ -134,6 +157,16 @@ int gen_block_node(kuma_gen_context *ctx, kuma_block_node *node)
     return r;
 }
 
+int gen_call_node(kuma_gen_context *ctx, kuma_call_node *node)
+{
+    return NULL;
+}
+
+int gen_node_function(kuma_gen_context *ctx, kuma_function_node *node)
+{
+    return NULL;
+}
+
 int gen_node(kuma_gen_context *ctx, kuma_node *node)
 {
     if(node && node->type == NODE_VAR_DECL) return gen_var_node(ctx, (kuma_var_node*)node);
@@ -144,6 +177,8 @@ int gen_node(kuma_gen_context *ctx, kuma_node *node)
     if(node && node->type == NODE_IF) return gen_if_node(ctx, (kuma_if_node*)node);
     if(node && node->type == NODE_ASSIGNMENT) return gen_assignment_node(ctx, (kuma_assignment_node*)node);
     if(node && node->type == NODE_BLOCK) return gen_block_node(ctx, (kuma_block_node*)node);
+    if(node && node->type == NODE_FUNCTION) return gen_node_function(ctx, (kuma_function_node*)node);
+    if(node && node->type == NODE_CALL) return gen_call_node(ctx, (kuma_call_node*)node);
 
     return 0;
 }
