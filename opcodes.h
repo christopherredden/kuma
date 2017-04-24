@@ -44,7 +44,7 @@ typedef uint32_t kuma_instruction;
 
 typedef enum
 {
-    OP_LOADCONSTANT,
+    OP_LOADCONSTANT = 0,
     OP_LOADBOOL,
     OP_MOVE,
     OP_ADD,
@@ -57,9 +57,10 @@ typedef enum
     OP_LEQ,
     OP_GT,
     OP_GEQ,
-    OP_HALT,
 	OP_CALL,
     OP_NOP,
+    OP_HALT,
+    OP_EOF,
 
 } kuma_opcode;
 
